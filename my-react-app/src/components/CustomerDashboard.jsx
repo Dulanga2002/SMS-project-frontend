@@ -1,9 +1,9 @@
 import { useState, useEffect } from 'react';
-import { Scissors, User, LogOut, Clock } from 'lucide-react';
+import { Scissors, User, LogOut, Clock, Calendar, Plus } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 import { useNavigate } from 'react-router-dom';
 import { useUser, UserButton } from '@clerk/clerk-react';
-import ServiceSelection from './ServiceSelection';
+import BookAppointmentModal from './BookAppointmentModal';
 import AppointmentList from './AppointmentList';
 
 
@@ -12,8 +12,7 @@ export default function CustomerDashboard() {
   const { user } = useUser();
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('dashboard');
-
-
+  const [isBookingModalOpen, setIsBookingModalOpen] = useState(false);
 
   const handleProfileClick = () => {
     navigate('/profile');
@@ -117,8 +116,60 @@ export default function CustomerDashboard() {
               </div>
             </div>
 
-            {/* Services */}
-            <ServiceSelection />
+            {/* Book Appointment Section */}
+            <div className="bg-gradient-to-br from-purple-600 to-pink-600 rounded-lg p-8 text-white mb-8">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h2 className="text-2xl font-bold mb-2">Ready for a new look?</h2>
+                  <p className="text-purple-100 mb-4">
+                    Book your appointment now and select multiple services
+                  </p>
+                </div>
+                <button
+                  onClick={() => setIsBookingModalOpen(true)}
+                  className="bg-white text-purple-600 px-6 py-3 rounded-lg font-semibold hover:bg-purple-50 transition-colors flex items-center gap-2 shadow-lg"
+                >
+                  <Plus className="w-5 h-5" />
+                  Book Appointment
+                </button>
+              </div>
+            </div>
+
+            {/* Recent Appointments Preview */}
+            {customerAppointments.length > 0 && (
+              <div className="bg-white rounded-lg p-6 border">
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="text-xl font-semibold">Recent Appointments</h3>
+                  <button
+                    onClick={() => setActiveTab('appointments')}
+                    className="text-purple-600 hover:text-purple-700 text-sm font-medium"
+                  >
+                    View All
+                  </button>
+                </div>
+                <div className="space-y-3">
+                  {customerAppointments.slice(0, 3).map((apt) => (
+                    <div key={apt.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                      <div className="flex items-center gap-3">
+                        <Calendar className="w-5 h-5 text-purple-600" />
+                        <div>
+                          <p className="font-medium">{apt.serviceName}</p>
+                          <p className="text-sm text-gray-600">{apt.date} at {apt.time}</p>
+                        </div>
+                      </div>
+                      <span className={`text-xs px-2 py-1 rounded-full ${
+                        apt.status === 'confirmed' ? 'bg-blue-100 text-blue-700' :
+                        apt.status === 'completed' ? 'bg-green-100 text-green-700' :
+                        apt.status === 'pending' ? 'bg-yellow-100 text-yellow-700' :
+                        'bg-red-100 text-red-700'
+                      }`}>
+                        {apt.status}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
           </>
         )}
 
@@ -126,6 +177,12 @@ export default function CustomerDashboard() {
           <AppointmentList appointments={customerAppointments} userRole="customer" />
         )}
       </div>
+
+      {/* Book Appointment Modal */}
+      <BookAppointmentModal
+        isOpen={isBookingModalOpen}
+        onClose={() => setIsBookingModalOpen(false)}
+      />
     </div>
   );
 }

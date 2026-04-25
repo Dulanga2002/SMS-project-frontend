@@ -120,9 +120,16 @@ export const AppProvider = ({ children }) => {
   const bookAppointment = async (appointmentData) => {
     try {
       const token = await getToken();
-      const newAppointment = await createAppointment(token, appointmentData);
-      setAppointments([...appointments, newAppointment]);
-      return newAppointment;
+      console.log('Booking appointment with data:', appointmentData);
+      const response = await createAppointment(token, appointmentData);
+      console.log('Appointment created:', response);
+
+      // Add the new appointment to state
+      if (response.success && response.appointment) {
+        setAppointments([...appointments, response.appointment]);
+      }
+
+      return response;
     } catch (error) {
       console.error('Error booking appointment:', error);
       throw error;

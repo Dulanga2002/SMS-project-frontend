@@ -2,7 +2,7 @@ const API_URL =  'http://localhost:5000/api';
 
 const getAllUsers = async () => {
     try {
-        const response = await fetch(`${API_URL}/users/getAllUsers`, {
+        const response = await fetch(`${API_URL}/users/getClerkUsers`, {
             method: 'GET',
             headers: {
                 'Content-Type': 'application/json',

@@ -48,10 +48,10 @@ export const getUserProfile = async (token) => {
   }
 };
 
-// Create appointment
+// Create appointment (matches backend /api/newAppointment)
 export const createAppointment = async (token, appointmentData) => {
   try {
-    const response = await fetch(`${API_URL}/appointments`, {
+    const response = await fetch(`${API_URL}/newAppointment`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -61,7 +61,8 @@ export const createAppointment = async (token, appointmentData) => {
     });
 
     if (!response.ok) {
-      throw new Error('Failed to create appointment');
+      const errorData = await response.json();
+      throw new Error(errorData.message || 'Failed to create appointment');
     }
 
     const data = await response.json();

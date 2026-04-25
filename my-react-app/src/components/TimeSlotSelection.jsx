@@ -83,13 +83,26 @@ export default function TimeSlotSelection({ service, staff, onBack }) {
     }
 
     try {
+      // Format data to match backend API: /api/newAppointment
       const appointmentData = {
-        staffId: staff.id,
-        serviceId: service.id,
-        date: selectedDate,
-        time: formatTimeSlot(selectedTime),
-        price: service.price,
-        duration: service.duration
+        customer: {
+          customerId: user.id, // Clerk user ID
+          customerName: user.fullName || user.firstName || 'Customer'
+        },
+        staff: {
+          staffId: staff.userId, // Clerk user ID from staff member
+          staffName: `${staff.firstName} ${staff.lastName}`
+        },
+        services: [
+          {
+            serviceId: service._id, // MongoDB _id
+            serviceName: service.name,
+            serviceCost: service.price
+          }
+        ],
+        appointmentDate: selectedDate, // YYYY-MM-DD format
+        appointmentTime: selectedTime, // HH:MM format (24-hour)
+        description: '' // Optional notes
       };
 
       await bookAppointment(appointmentData);
