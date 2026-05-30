@@ -51,6 +51,7 @@ export const getUserProfile = async (token) => {
 // Create appointment (matches backend /api/newAppointment)
 export const createAppointment = async (token, appointmentData) => {
   try {
+    console.log("Appointment data being sent:", appointmentData);
     const response = await fetch(`${API_URL}/newAppointment`, {
       method: 'POST',
       headers: {
@@ -77,7 +78,7 @@ export const createAppointment = async (token, appointmentData) => {
 // Get user's appointments
 export const getMyAppointments = async (token) => {
   try {
-    const response = await fetch(`${API_URL}/appointments/my-appointments`, {
+    const response = await fetch(`${API_URL}/newAppointment/my-appointments`, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
@@ -90,10 +91,36 @@ export const getMyAppointments = async (token) => {
     }
 
     const data = await response.json();
-    console.log('getMyAppointments response data:', data);
     return data;
   } catch (error) {
     console.error('Error getting appointments:', error);
+    throw error;
+  }
+};
+
+// Get all appointments (for admin)
+export const getAllAppointments = async () => {
+  try {
+    const response = await fetch(`${API_URL}/newAppointment/`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to get all appointments');
+    }
+
+    const data = await response.json();
+    console.log('getAllAppointments response data:', data);
+    
+    // Extract appointments array from response
+    // Response format: { message: "...", appointments: [...], count: ... }
+    const appointments = data.appointments || [];
+    return appointments;
+  } catch (error) {
+    console.error('Error getting all appointments:', error);
     throw error;
   }
 };
@@ -142,11 +169,39 @@ export const getStaff = async () => {
   }
 };
 
+// Create service
+export const createService = async (serviceData) => {
+  try {
+    console.log('Creating service with data:', serviceData);
+    const response = await fetch(`${API_URL}/services`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(serviceData)
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.message || 'Failed to create service');
+    }
+
+    const data = await response.json();
+    console.log('Service created:', data);
+    return data;
+  } catch (error) {
+    console.error('Error creating service:', error);
+    throw error;
+  }
+};
+
 export default {
   syncUser,
   getUserProfile,
   createAppointment,
   getMyAppointments,
+  getAllAppointments,
   getServices,
-  getStaff
+  getStaff,
+  createService
 };

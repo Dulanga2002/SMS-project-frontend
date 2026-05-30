@@ -1,6 +1,6 @@
 import { createContext, useContext, useState, useEffect } from 'react';
 import { useAuth } from '@clerk/clerk-react';
-import { syncUser, createAppointment, getMyAppointments, getServices, getStaff } from '../services/api';
+import { syncUser, createAppointment, getMyAppointments, getAllAppointments, getServices, getStaff } from '../services/api';
 
 const AppContext = createContext();
 
@@ -70,12 +70,14 @@ export const AppProvider = ({ children }) => {
           setCurrentUser(userData);
           console.log('User synced successfully:', userData);
           
-          // Fetch user's appointments
-          const userAppointments = await getMyAppointments(token);
-          setAppointments(userAppointments);
-          console.log('Appointments loaded:', userAppointments);
+          // Fetch all appointments for admin dashboard
+          const allAppointments = await getAllAppointments();
+          // Ensure appointments is always an array
+          setAppointments(Array.isArray(allAppointments) ? allAppointments : []);
+          console.log('All appointments loaded:', allAppointments);
         } catch (error) {
           console.error('Failed to sync user:', error);
+          setAppointments([]); // Set empty array on error
         } finally {
           setLoading(false);
         }

@@ -159,7 +159,7 @@ export default function BookAppointmentModal({ isOpen, onClose }) {
           customerName: user.fullName || user.firstName || 'Customer'
         },
         staff: {
-          staffId: selectedStaff.userId,
+          staffId: selectedStaff.id,
           staffName: `${selectedStaff.firstName} ${selectedStaff.lastName}`
         },
         services: selectedServices.map(service => ({
@@ -169,7 +169,8 @@ export default function BookAppointmentModal({ isOpen, onClose }) {
         })),
         appointmentDate: selectedDate,
         appointmentTime: selectedTime,
-        description: description
+        description: description,
+        totalCost: totalCost
       };
 
       await bookAppointment(appointmentData);
@@ -305,7 +306,7 @@ export default function BookAppointmentModal({ isOpen, onClose }) {
                     key={staff.id}
                     onClick={() => setSelectedStaff(staff)}
                     className={`border-2 rounded-lg p-4 cursor-pointer transition-all ${
-                      selectedStaff?.userId === staff.userId
+                      selectedStaff?.id === staff.id
                         ? 'border-purple-600 bg-purple-50'
                         : 'border-gray-200 hover:border-purple-300'
                     }`}

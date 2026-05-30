@@ -2,17 +2,21 @@ import { useState, useEffect } from 'react';
 import { Scissors, User, LogOut, Clock, Calendar, Plus } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 import { useNavigate } from 'react-router-dom';
-import { useUser, UserButton } from '@clerk/clerk-react';
+import { useUser, UserButton, useAuth } from '@clerk/clerk-react';
 import BookAppointmentModal from './BookAppointmentModal';
 import AppointmentList from './AppointmentList';
+import { getMyAppointments } from '../services/api';
 
 
 export default function CustomerDashboard() {
   const { appointments, currentUser, loading } = useApp();
   const { user } = useUser();
+  const { getToken } = useAuth();
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('dashboard');
   const [isBookingModalOpen, setIsBookingModalOpen] = useState(false);
+  const [myAppointments, setMyAppointments] = useState([]);
+  const [token, setToken] = useState(null);
 
   const handleProfileClick = () => {
     navigate('/profile');
@@ -23,6 +27,29 @@ export default function CustomerDashboard() {
     apt.status === 'confirmed' || apt.status === 'pending'
   ).length;
   const completedCount = customerAppointments.filter(apt => apt.status === 'completed').length;
+
+  useEffect(() => {
+    const fetchToken = async () => {
+      if (currentUser) {
+        const token = await getToken();
+        setToken(token);
+      }
+    }
+    fetchToken();
+
+    const fetchAppointments = async () => {
+      if (token) {
+        try {
+          const data = await getMyAppointments(token);
+          setMyAppointments(data);
+        } catch (error) {
+          console.error('Error fetching appointments:', error);
+        }
+      }
+    };
+    fetchAppointments();
+
+  }, [currentUser, token]);
 
   return (
     <div className="min-h-screen">
@@ -174,7 +201,7 @@ export default function CustomerDashboard() {
         )}
 
         {activeTab === 'appointments' && (
-          <AppointmentList appointments={customerAppointments} userRole="customer" />
+          <AppointmentList appointments={myAppointments} userRole="customer" />
         )}
       </div>
 

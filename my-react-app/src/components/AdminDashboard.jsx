@@ -1,15 +1,18 @@
 import { useState, useEffect } from 'react';
-import { Scissors, User, LogOut, Calendar, TrendingUp, UserPlus, Mail, Lock, Phone, MapPin, Edit, Trash2, X } from 'lucide-react';
+import { Scissors, User, LogOut, Calendar, TrendingUp, UserPlus, Mail, Lock, Phone, MapPin, Edit, Trash2, X, Plus, DollarSign, Clock } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 import { useNavigate } from 'react-router-dom';
 import AppointmentList from './AppointmentList';
 import { getAllUsers } from '../services/userService';
+import { createService } from '../services/api';
+import { getAllAppointments } from '../services/api';
 
 export default function AdminDashboard() {
-  const { currentUser, logout, appointments, services, staff, addStaff, updateStaff, deleteStaff } = useApp();
+  const { currentUser, logout, services, staff, addStaff, updateStaff, deleteStaff } = useApp();
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('overview');
   const [users, setUsers] = useState([]);
+  const [appointments, setAppointments] = useState([]);
 
   useEffect(() => {
     // Fetch users from backend API
@@ -22,7 +25,19 @@ export default function AdminDashboard() {
         console.error('Error fetching users:', error);
       }
     }
+    // fetch all appointments
+    const fetchAppointments = async () => {
+      try {
+        const appointmentsData = await getAllAppointments();
+        console.log('Fetched appointments:', appointmentsData);
+        setAppointments(appointmentsData);
+      } catch (error) {
+        console.error('Error fetching appointments:', error);
+      }
+    }
+
     fetchUsers();
+    fetchAppointments();
   }, [])
   
   // Staff form state
@@ -35,6 +50,15 @@ export default function AdminDashboard() {
     contactNumber: '',
     address: '',
     specialty: '',
+  });
+
+  // Service form state
+  const [showAddServiceForm, setShowAddServiceForm] = useState(false);
+  const [serviceForm, setServiceForm] = useState({
+    name: '',
+    description: '',
+    price: '',
+    duration: '',
   });
 
   const handleLogout = () => {
@@ -128,6 +152,40 @@ export default function AdminDashboard() {
     });
   };
 
+  const handleAddService = async (e) => {
+    e.preventDefault();
+
+    // Validate form
+    if (!serviceForm.name || !serviceForm.description || !serviceForm.price || !serviceForm.duration) {
+      alert('Please fill in all required fields');
+      return;
+    }
+
+    try {
+      await createService({
+        name: serviceForm.name,
+        description: serviceForm.description,
+        price: parseFloat(serviceForm.price),
+        duration: parseInt(serviceForm.duration),
+      });
+
+      alert('Service created successfully!');
+      setServiceForm({
+        name: '',
+        description: '',
+        price: '',
+        duration: '',
+      });
+      setShowAddServiceForm(false);
+
+      // Refresh page to see new service
+      window.location.reload();
+    } catch (error) {
+      alert('Failed to create service: ' + (error.message || 'Please try again'));
+      console.error('Service creation error:', error);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
@@ -198,6 +256,16 @@ export default function AdminDashboard() {
             >
               Staff Management
             </button>
+            <button
+              onClick={() => setActiveTab('services')}
+              className={`py-4 border-b-2 transition-colors ${
+                activeTab === 'services'
+                  ? 'border-purple-600 text-purple-600'
+                  : 'border-transparent text-gray-600 hover:text-purple-600'
+              }`}
+            >
+              Services
+            </button>
           </div>
         </div>
       </div>
@@ -217,80 +285,12 @@ export default function AdminDashboard() {
                   <Calendar className="w-12 h-12 opacity-80" />
                 </div>
               </div>
-
-              <div className="bg-white rounded-lg p-6 border">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm text-gray-600 mb-1">Accepted</p>
-                    <p className="text-4xl text-green-600">{acceptedCount}</p>
-                  </div>
-                  <TrendingUp className="w-12 h-12 text-green-600" />
-                </div>
-              </div>
-
-              <div className="bg-white rounded-lg p-6 border">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm text-gray-600 mb-1">Upcoming</p>
-                    <p className="text-4xl text-blue-600">{upcomingCount}</p>
-                  </div>
-                  <Calendar className="w-12 h-12 text-blue-600" />
-                </div>
-              </div>
-            </div>
-
-            {/* Summary Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <div className="bg-white rounded-lg p-6 border">
-                <h3 className="text-lg mb-4">Quick Stats</h3>
-                <div className="space-y-3">
-                  <div className="flex items-center justify-between">
-                    <span className="text-gray-600">Completed</span>
-                    <span className="text-green-600">{completedCount}</span>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-gray-600">Rejected</span>
-                    <span className="text-red-600">{rejectedCount}</span>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-gray-600">Total Staff</span>
-                    <span className="text-purple-600">{staff.length}</span>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-gray-600">Services</span>
-                    <span className="text-purple-600">{services.length}</span>
-                  </div>
-                </div>
-              </div>
-
-              <div className="bg-white rounded-lg p-6 border col-span-2">
-                <h3 className="text-lg mb-4">Recent Appointments</h3>
-                <div className="space-y-2">
-                  {appointments.slice(0, 5).map((apt) => (
-                    <div key={apt.id} className="flex items-center justify-between p-3 bg-gray-50 rounded">
-                      <div>
-                        <p className="text-sm">{apt.customerName}</p>
-                        <p className="text-xs text-gray-600">{apt.serviceName}</p>
-                      </div>
-                      <span className={`text-xs px-2 py-1 rounded ${
-                        apt.status === 'confirmed' ? 'bg-green-100 text-green-700' :
-                        apt.status === 'pending' ? 'bg-yellow-100 text-yellow-700' :
-                        apt.status === 'completed' ? 'bg-blue-100 text-blue-700' :
-                        'bg-red-100 text-red-700'
-                      }`}>
-                        {apt.status}
-                      </span>
-                    </div>
-                  ))}
-                </div>
-              </div>
             </div>
           </>
         )}
 
         {activeTab === 'appointments' && (
           <div>
-            <h2 className="text-2xl mb-6">All Appointments</h2>
             <AppointmentList appointments={appointments} userRole="admin" />
           </div>
         )}
@@ -551,6 +551,155 @@ export default function AdminDashboard() {
 </div>
 
             
+          </div>
+        )}
+
+        {activeTab === 'services' && (
+          <div>
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-2xl">Services Management</h2>
+              <button
+                onClick={() => {
+                  setServiceForm({
+                    name: '',
+                    description: '',
+                    price: '',
+                    duration: '',
+                  });
+                  setShowAddServiceForm(!showAddServiceForm);
+                }}
+                className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors flex items-center gap-2"
+              >
+                <Plus className="w-5 h-5" />
+                Add Service
+              </button>
+            </div>
+
+            {/* Add Service Form */}
+            {showAddServiceForm && (
+              <div className="bg-white rounded-lg p-6 border mb-6">
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="text-lg">Add New Service</h3>
+                  <button
+                    onClick={() => setShowAddServiceForm(false)}
+                    className="p-1 text-gray-400 hover:text-gray-600"
+                  >
+                    <X className="w-5 h-5" />
+                  </button>
+                </div>
+                <form onSubmit={handleAddService} className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm text-gray-700 mb-2">
+                      Service Name <span className="text-red-600">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      value={serviceForm.name}
+                      onChange={(e) => setServiceForm({ ...serviceForm, name: e.target.value })}
+                      placeholder="e.g., Hair Cut"
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-600"
+                      required
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm text-gray-700 mb-2">
+                      Price (Rs.) <span className="text-red-600">*</span>
+                    </label>
+                    <div className="relative">
+                      <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                      <input
+                        type="number"
+                        step="0.01"
+                        value={serviceForm.price}
+                        onChange={(e) => setServiceForm({ ...serviceForm, price: e.target.value })}
+                        placeholder="0.00"
+                        className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-600"
+                        required
+                      />
+                    </div>
+                  </div>
+
+                  <div className="md:col-span-2">
+                    <label className="block text-sm text-gray-700 mb-2">
+                      Description <span className="text-red-600">*</span>
+                    </label>
+                    <textarea
+                      value={serviceForm.description}
+                      onChange={(e) => setServiceForm({ ...serviceForm, description: e.target.value })}
+                      placeholder="Enter service description"
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-600"
+                      rows="3"
+                      required
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm text-gray-700 mb-2">
+                      Duration (minutes) <span className="text-red-600">*</span>
+                    </label>
+                    <div className="relative">
+                      <Clock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                      <input
+                        type="number"
+                        value={serviceForm.duration}
+                        onChange={(e) => setServiceForm({ ...serviceForm, duration: e.target.value })}
+                        placeholder="30"
+                        className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-600"
+                        required
+                      />
+                    </div>
+                  </div>
+
+                  <div className="md:col-span-2 flex gap-3">
+                    <button
+                      type="submit"
+                      className="px-6 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
+                    >
+                      Create Service
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setShowAddServiceForm(false)}
+                      className="px-6 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                </form>
+              </div>
+            )}
+
+            {/* Services List */}
+            <div className="bg-white rounded-lg border">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 p-6">
+                {services && services.length > 0 ? (
+                  services.map((service) => (
+                    <div
+                      key={service.id}
+                      className="border rounded-lg p-4 hover:shadow-lg transition-shadow"
+                    >
+                      <h4 className="font-semibold text-lg mb-2">{service.name}</h4>
+                      <p className="text-gray-600 text-sm mb-3">{service.description}</p>
+                      <div className="space-y-2">
+                        <div className="flex items-center justify-between text-sm">
+                          <span className="text-gray-600">Price:</span>
+                          <span className="font-semibold text-purple-600">Rs. {service.price}</span>
+                        </div>
+                        <div className="flex items-center justify-between text-sm">
+                          <span className="text-gray-600">Duration:</span>
+                          <span className="font-semibold">{service.duration} min</span>
+                        </div>
+                      </div>
+                    </div>
+                  ))
+                ) : (
+                  <div className="col-span-full text-center py-8 text-gray-600">
+                    No services available. Create your first service!
+                  </div>
+                )}
+              </div>
+            </div>
           </div>
         )}
       </div>
