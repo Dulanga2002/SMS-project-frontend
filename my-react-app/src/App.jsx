@@ -2,6 +2,9 @@ import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { AppProvider } from './context/AppContext';
 
 import HomePage from './pages/HomePage';
+import AboutPage from './pages/AboutPage';
+import ContactPage from './pages/ContactPage';
+import CareersPage from './pages/CareersPage';
 import DashboardPage from './pages/DashboardPage';
 import AdminDashboard from './components/AdminDashboard';
 import StaffDashboard from './pages/StaffDashboard';
@@ -15,6 +18,11 @@ function App() {
 
           {/* Public Route */}
           <Route path="/" element={<HomePage />} />
+
+          {/* Static Info Pages */}
+          <Route path="/about" element={<AboutPage />} />
+          <Route path="/contact" element={<ContactPage />} />
+          <Route path="/careers" element={<CareersPage />} />
 
           {/* CUSTOMER ROUTES */}
           <Route element={<ProtectedRoute allowedRoles={['customer']} />}>

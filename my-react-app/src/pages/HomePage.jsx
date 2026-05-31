@@ -79,9 +79,12 @@ export default function HomePage() {
                     </button>
                   </Link>
                 </SignedIn>
-                <button className="px-8 py-3 border-2 border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors font-medium">
+                <Link
+                  to="/about"
+                  className="px-8 py-3 border-2 border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors font-medium"
+                >
                   Learn More
-                </button>
+                </Link>
               </div>
             </div>
 
@@ -248,20 +251,26 @@ export default function HomePage() {
             <div>
               <h4 className="text-lg mb-4">Services</h4>
               <ul className="space-y-2 text-sm text-gray-400">
-                <li className="hover:text-white cursor-pointer transition-colors">Hair Cut</li>
-                <li className="hover:text-white cursor-pointer transition-colors">Hair Color</li>
-                <li className="hover:text-white cursor-pointer transition-colors">Hair Straightening</li>
+                <li className="">Hair Cut</li>
+                <li className="">Hair Color</li>
+                <li className="">Hair Straightening</li>
               </ul>
             </div>
 
             {/* Company */}
             <div>
               <h4 className="text-lg mb-4">Company</h4>
-              <ul className="space-y-2 text-sm text-gray-400">
-                <li className="hover:text-white cursor-pointer transition-colors">About Us</li>
-                <li className="hover:text-white cursor-pointer transition-colors">Contact</li>
-                <li className="hover:text-white cursor-pointer transition-colors">Careers</li>
-              </ul>
+                <ul className="space-y-2 text-sm text-gray-400">
+                  <li>
+                    <Link to="/about" className="hover:text-white transition-colors">About Us</Link>
+                  </li>
+                  <li>
+                    <Link to="/contact" className="hover:text-white transition-colors">Contact</Link>
+                  </li>
+                  <li>
+                    <Link to="/careers" className="hover:text-white transition-colors">Careers</Link>
+                  </li>
+                </ul>
             </div>
 
             {/* Hours */}
