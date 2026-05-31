@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { X, Calendar, Clock, User, DollarSign, Check } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 import { useUser, useAuth } from '@clerk/clerk-react';
-import { getServices } from '../services/api';
+import { getAssignedSlots, getServices } from '../services/api';
 import { getAllUsers } from '../services/userService';
 
 export default function BookAppointmentModal({ isOpen, onClose }) {
@@ -21,6 +21,8 @@ export default function BookAppointmentModal({ isOpen, onClose }) {
   const [selectedDate, setSelectedDate] = useState('');
   const [selectedTime, setSelectedTime] = useState('');
   const [description, setDescription] = useState('');
+  const [assignedSlots, setAssignedSlots] = useState([]);
+  const [slotsLoading, setSlotsLoading] = useState(false);
 
   // UI States
   const [loading, setLoading] = useState(false);
@@ -36,10 +38,10 @@ export default function BookAppointmentModal({ isOpen, onClose }) {
         ]);
         setServices(servicesData);
         // Filter only staff members
-        console.log('Fetched users:', usersData);
         const staff = usersData.data.filter(
           user => user.publicMetadata?.role === "staff"
         );
+        console.log('Fetched staff members:', staff);
         setStaffMembers(staff);
       } catch (error) {
         console.error('Error fetching data:', error);
@@ -61,8 +63,33 @@ export default function BookAppointmentModal({ isOpen, onClose }) {
       setSelectedTime('');
       setDescription('');
       setShowSuccess(false);
+      setAssignedSlots([]);
+      setSlotsLoading(false);
     }
   }, [isOpen]);
+
+  useEffect(() => {
+    const fetchAssignedSlots = async () => {
+      if (!isOpen || step !== 3 || !selectedStaff || !selectedDate) {
+        setAssignedSlots([]);
+        return;
+      }
+
+      try {
+        setSlotsLoading(true);
+        const staffUserId = selectedStaff.userId || selectedStaff.id;
+        const data = await getAssignedSlots(staffUserId, selectedDate);
+        setAssignedSlots(Array.isArray(data?.assignedSlotes) ? data.assignedSlotes : []);
+      } catch (error) {
+        console.error('Error fetching assigned slots:', error);
+        setAssignedSlots([]);
+      } finally {
+        setSlotsLoading(false);
+      }
+    };
+
+    fetchAssignedSlots();
+  }, [isOpen, step, selectedStaff, selectedDate]);
 
   // Service selection handlers
   const toggleService = (service) => {
@@ -125,6 +152,10 @@ export default function BookAppointmentModal({ isOpen, onClose }) {
     const period = hour >= 12 ? 'PM' : 'AM';
     const displayHour = hour > 12 ? hour - 12 : hour;
     return `${displayHour}:00 ${period}`;
+  };
+
+  const isTimeSlotAssigned = (date, time) => {
+    return assignedSlots.some((slot) => slot.date === date && slot.time === time);
   };
 
   // Navigation handlers
@@ -352,7 +383,10 @@ export default function BookAppointmentModal({ isOpen, onClose }) {
                     return (
                       <button
                         key={formattedDate.full}
-                        onClick={() => setSelectedDate(formattedDate.full)}
+                        onClick={() => {
+                          setSelectedDate(formattedDate.full);
+                          setSelectedTime('');
+                        }}
                         className={`p-2 rounded-lg border-2 transition-all ${
                           isSelected
                             ? 'border-purple-600 bg-purple-50 text-purple-600'
@@ -377,23 +411,27 @@ export default function BookAppointmentModal({ isOpen, onClose }) {
                 <p className="text-sm text-gray-600 mb-3">
                   Working Hours: 8:00 AM - 5:00 PM (Lunch: 12:00 PM - 1:00 PM)
                 </p>
+                {slotsLoading && selectedDate && (
+                  <p className="text-sm text-gray-500 mb-3">Loading unavailable time slots...</p>
+                )}
                 <div className="grid grid-cols-4 md:grid-cols-6 gap-2">
                   {timeSlots.map((time) => {
                     const isSelected = selectedTime === time;
+                    const isAssigned = selectedDate ? isTimeSlotAssigned(selectedDate, time) : false;
                     return (
                       <button
                         key={time}
-                        onClick={() => setSelectedTime(time)}
-                        disabled={!selectedDate}
+                        onClick={() => !isAssigned && setSelectedTime(time)}
+                        disabled={!selectedDate || isAssigned}
                         className={`p-3 rounded-lg border-2 transition-all ${
-                          !selectedDate
+                          !selectedDate || isAssigned
                             ? 'bg-gray-100 text-gray-400 cursor-not-allowed border-gray-200'
                             : isSelected
                             ? 'border-purple-600 bg-purple-50 text-purple-600'
                             : 'border-gray-200 hover:border-purple-300'
                         }`}
                       >
-                        {formatTimeSlot(time)}
+                        {isAssigned ? 'Booked' : formatTimeSlot(time)}
                       </button>
                     );
                   })}

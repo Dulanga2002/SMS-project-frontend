@@ -1,35 +1,37 @@
 import { useState, useEffect } from 'react';
 import { Calendar, Clock, Check, ArrowLeft } from 'lucide-react';
 import { useApp } from '../context/AppContext';
-import { useUser } from '@clerk/clerk-react';
-import { getAppointmentByDetails } from '../services/appointmentService';
+import { getAssignedSlots } from '../services/api';
 
 export default function TimeSlotSelection({ service, staff, onBack }) {
-  const { bookAppointment, appointments } = useApp();
-  const { user } = useUser();
+  const { bookAppointment } = useApp();
   const [selectedDate, setSelectedDate] = useState('');
   const [selectedTime, setSelectedTime] = useState('');
   const [showConfirmation, setShowConfirmation] = useState(false);
-  const [existingAppointments, setExistingAppointments] = useState([]);
-  const customerId = "user_38QSJo4ihNJ9n5nNkkVwsd4qXJf";
+  const [assignedSlots, setAssignedSlots] = useState([]);
+  const [slotsLoading, setSlotsLoading] = useState(false);
 
   useEffect(() => {
-    const fetchAppointments = async () => {
+    const fetchAssignedSlots = async () => {
+      if (!selectedDate || !staff?.userId) {
+        setAssignedSlots([]);
+        return;
+      }
+
       try {
-        console.log('Fetching appointments for:', {
-          customerId,
-          staffId: staff.userId,
-          serviceId: service._id
-        });
-        const data = await getAppointmentByDetails(customerId, staff.userId, service._id);
-        setExistingAppointments(data);
-        console.log('Existing Appointments:', data);
+        setSlotsLoading(true);
+        const data = await getAssignedSlots(staff.userId, selectedDate);
+        setAssignedSlots(Array.isArray(data?.assignedSlotes) ? data.assignedSlotes : []);
       } catch (error) {
-        console.error('Error fetching appointments:', error);
+        console.error('Error fetching assigned slots:', error);
+        setAssignedSlots([]);
+      } finally {
+        setSlotsLoading(false);
       }
     };
-    fetchAppointments();
-  }, [user, staff, service]);
+
+    fetchAssignedSlots();
+  }, [selectedDate, staff?.userId]);
 
   // Generate next 7 days for date selection
   const generateDates = () => {
@@ -64,16 +66,10 @@ export default function TimeSlotSelection({ service, staff, onBack }) {
   };
 
   const isSlotAvailable = (date, time) => {
-    if (staff.unavailableDates && staff.unavailableDates.includes(date)) return false;
-    const formattedTime = formatTimeSlot(time);
-    const existing = appointments.find(
-      (apt) =>
-        apt.staffId === staff.id &&
-        apt.date === date &&
-        apt.time === formattedTime &&
-        (apt.status === 'pending' || apt.status === 'confirmed')
+    const isAssigned = assignedSlots.some(
+      (slot) => slot.date === date && slot.time === time,
     );
-    return !existing;
+    return !isAssigned;
   };
 
   const handleBooking = async () => {
@@ -170,25 +166,6 @@ export default function TimeSlotSelection({ service, staff, onBack }) {
         </div>
       </div>
 
-      {/* --- Display Existing Appointments --- */}
-      <div className="bg-white rounded-lg border p-6 mb-6">
-        <h2 className="text-lg font-bold mb-4">Existing Appointments</h2>
-        {existingAppointments.length === 0 ? (
-          <p className="text-gray-600">No appointments for this staff & service yet.</p>
-        ) : (
-          <ul className="space-y-3">
-            {existingAppointments.map((apt) => (
-              <li key={apt._id} className="p-3 border rounded-lg bg-gray-50">
-                <p><strong>Date:</strong> {new Date(apt.date).toLocaleDateString()}</p>
-                <p><strong>Time:</strong> {apt.startTime} - {apt.endTime}</p>
-                <p><strong>Status:</strong> {apt.status}</p>
-                <p><strong>Notes:</strong> {apt.notes || '-'}</p>
-              </li>
-            ))}
-          </ul>
-        )}
-      </div>
-
       {/* --- Date Selection --- */}
       <h2 className="text-2xl mb-6">Select Date & Time</h2>
       <div className="mb-8">
@@ -203,7 +180,10 @@ export default function TimeSlotSelection({ service, staff, onBack }) {
             return (
               <button
                 key={formattedDate.full}
-                onClick={() => setSelectedDate(formattedDate.full)}
+                onClick={() => {
+                  setSelectedDate(formattedDate.full);
+                  setSelectedTime('');
+                }}
                 className={`p-3 rounded-lg border-2 transition-all ${
                   isSelected ? 'border-purple-600 bg-purple-50 text-purple-600' : 'border-gray-200 hover:border-purple-300'
                 }`}
@@ -226,6 +206,9 @@ export default function TimeSlotSelection({ service, staff, onBack }) {
         <p className="text-sm text-gray-600 mb-4">
           Working Hours: 8:00 AM - 5:00 PM (Lunch: 12:00 PM - 1:00 PM)
         </p>
+        {slotsLoading && selectedDate && (
+          <p className="text-sm text-gray-500 mb-4">Loading unavailable slots...</p>
+        )}
         <div className="grid grid-cols-4 md:grid-cols-6 gap-2">
           {timeSlots.map((time) => {
             const available = selectedDate && isSlotAvailable(selectedDate, time);

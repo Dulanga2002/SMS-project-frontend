@@ -98,6 +98,29 @@ export const getMyAppointments = async (token) => {
   }
 };
 
+// Get staff member appointments
+export const getStaffAppointments = async (token) => {
+  try {
+    const response = await fetch(`${API_URL}/newAppointment/staff-appointments`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      }
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to get staff appointments');
+    }
+
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    console.error('Error getting staff appointments:', error);
+    throw error;
+  }
+};
+
 // Get all appointments (for admin)
 export const getAllAppointments = async () => {
   try {
@@ -121,6 +144,33 @@ export const getAllAppointments = async () => {
     return appointments;
   } catch (error) {
     console.error('Error getting all appointments:', error);
+    throw error;
+  }
+};
+
+// Get assigned slots for a staff member (optionally by date)
+export const getAssignedSlots = async (staffUserId, date) => {
+  try {
+    const params = new URLSearchParams({ staffUserId });
+    if (date) {
+      params.set('date', date);
+    }
+
+    const response = await fetch(`${API_URL}/newAppointment/assigned-slots?${params.toString()}`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to get assigned slots');
+    }
+
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    console.error('Error getting assigned slots:', error);
     throw error;
   }
 };
@@ -200,6 +250,8 @@ export default {
   getUserProfile,
   createAppointment,
   getMyAppointments,
+  getAssignedSlots,
+  getStaffAppointments,
   getAllAppointments,
   getServices,
   getStaff,
