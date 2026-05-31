@@ -163,26 +163,40 @@ export default function HomePage() {
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
             {beautyTips.map((tip) => (
-              <div 
-                key={tip.id} 
-                className="bg-black rounded-xl overflow-hidden relative group cursor-pointer hover:scale-105 transition-transform duration-300"
+              <a
+                key={tip.id}
+                href={tip.url || '#'}
+                target={tip.url ? '_blank' : undefined}
+                rel={tip.url ? 'noreferrer' : undefined}
+                className={`rounded-xl overflow-hidden relative group transition-transform duration-300 ${
+                  tip.url ? 'cursor-pointer hover:scale-105' : 'cursor-default'
+                }`}
               >
-                {/* Video Thumbnail */}
-                <div className="aspect-video bg-gradient-to-br from-gray-800 to-black flex items-center justify-center relative">
-                  <div className="absolute top-3 left-3 bg-black/70 text-white text-xs px-2 py-1 rounded">
+                <div className="aspect-video bg-black relative overflow-hidden">
+                  {tip.thumbnail ? (
+                    <img
+                      src={tip.thumbnail}
+                      alt={tip.title}
+                      className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-110"
+                    />
+                  ) : (
+                    <div className="h-full w-full bg-gradient-to-br from-gray-800 to-black" />
+                  )}
+                  <div className="absolute top-3 left-3 bg-black/75 text-white text-xs px-2 py-1 rounded">
                     {tip.duration}
                   </div>
-                  <div className="w-14 h-14 bg-white rounded-full flex items-center justify-center group-hover:scale-110 transition-transform">
-                    <Play className="w-6 h-6 text-purple-600 ml-1" fill="currentColor" />
+                  <div className="absolute inset-0 flex items-center justify-center bg-black/10 group-hover:bg-black/20 transition-colors">
+                    <div className="w-14 h-14 bg-white rounded-full flex items-center justify-center group-hover:scale-110 transition-transform shadow-lg">
+                      <Play className="w-6 h-6 text-purple-600 ml-1" fill="currentColor" />
+                    </div>
                   </div>
                 </div>
-                
-                {/* Video Info */}
+
                 <div className="p-4 bg-white">
                   <p className="text-xs text-purple-600 mb-1 uppercase tracking-wide">{tip.category}</p>
                   <p className="text-sm font-medium text-gray-900">{tip.title}</p>
                 </div>
-              </div>
+              </a>
             ))}
           </div>
         </div>

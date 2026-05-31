@@ -95,26 +95,34 @@ export const AppProvider = ({ children }) => {
     {
       id: 1,
       title: 'Perfect Haircut Tips',
-      category: 'Hair Care',
-      duration: '5:30'
+      category: 'Styling',
+      duration: '5:30',
+      url: 'https://www.youtube.com/watch?v=3f2shMmVYbY',
+      thumbnail: 'https://img.youtube.com/vi/3f2shMmVYbY/hqdefault.jpg'
     },
     {
       id: 2,
-      title: 'Hair Coloring Guide',
-      category: 'Styling',
-      duration: '7:45'
+      title: 'Healthy Hair Tips',
+      category: 'Hair Care',
+      duration: '7:45',
+      url: 'https://www.youtube.com/watch?v=QsynaMuQhZg',
+      thumbnail: 'https://img.youtube.com/vi/QsynaMuQhZg/hqdefault.jpg'
     },
     {
       id: 3,
-      title: 'Daily Hair Routine',
+      title: 'How To Fix Frizzy Hair LIKE A PRO',
       category: 'Maintenance',
-      duration: '4:20'
+      duration: '4:20',
+      url: 'https://www.youtube.com/watch?v=ePcEb2fymu0',
+      thumbnail: 'https://img.youtube.com/vi/ePcEb2fymu0/hqdefault.jpg'
     },
     {
       id: 4,
-      title: 'Professional Styling',
-      category: 'Tutorial',
-      duration: '6:15'
+      title: 'How to Style Your Hair like a Pro',
+      category: 'Proffesional',
+      duration: '6:15',
+      url: 'https://www.youtube.com/watch?v=ZM3n0OSrK9g',
+      thumbnail: 'https://img.youtube.com/vi/ZM3n0OSrK9g/hqdefault.jpg'
     }
   ];
 
