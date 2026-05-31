@@ -149,17 +149,13 @@ export const getAllAppointments = async () => {
 };
 
 // Get assigned slots for a staff member (optionally by date)
-export const getAssignedSlots = async (staffUserId, date) => {
-  try {
-    const params = new URLSearchParams({ staffUserId });
-    if (date) {
-      params.set('date', date);
-    }
-
-    const response = await fetch(`${API_URL}/newAppointment/assigned-slots?${params.toString()}`, {
+export const getAssignedSlots = async (token) => {
+  try {    
+    const response = await fetch(`${API_URL}/newAppointment/assigned-slots`, {
       method: 'GET',
       headers: {
-        'Content-Type': 'application/json'
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
       }
     });
 
@@ -171,6 +167,54 @@ export const getAssignedSlots = async (staffUserId, date) => {
     return data;
   } catch (error) {
     console.error('Error getting assigned slots:', error);
+    throw error;
+  }
+};
+
+// Mark a staff slot as unavailable
+export const markStaffSlotUnavailable = async (token, appointmentData) => {
+  try {
+    const response = await fetch(`${API_URL}/newAppointment/mark-unavailable`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      },
+      body: JSON.stringify(appointmentData)
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.message || 'Failed to mark slot unavailable');
+    }
+
+    return await response.json();
+  } catch (error) {
+    console.error('Error marking staff slot unavailable:', error);
+    throw error;
+  }
+};
+
+// Remove a staff unavailable slot
+export const removeStaffSlotUnavailable = async (token, appointmentData) => {
+  try {
+    const response = await fetch(`${API_URL}/newAppointment/remove-unavailable`, {
+      method: 'DELETE',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      },
+      body: JSON.stringify(appointmentData)
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.message || 'Failed to remove unavailable slot');
+    }
+
+    return await response.json();
+  } catch (error) {
+    console.error('Error removing staff slot unavailable:', error);
     throw error;
   }
 };
