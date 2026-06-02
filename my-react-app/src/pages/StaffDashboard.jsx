@@ -198,9 +198,9 @@ export default function StaffDashboard() {
 
   const filteredAppointments = filterDate
     ? staffAppointments.filter((appointment) => {
-        const dateKey = getDateKey(appointment?.appointmentDate || appointment?.date);
-        return dateKey === filterDate;
-      })
+      const dateKey = getDateKey(appointment?.appointmentDate || appointment?.date);
+      return dateKey === filterDate;
+    })
     : staffAppointments;
 
   return (
@@ -213,20 +213,8 @@ export default function StaffDashboard() {
               <Scissors className="w-8 h-8 text-purple-600" />
               <span className="text-2xl text-purple-600">Aura</span>
             </div>
-            
+
             <div className="flex items-center gap-4">
-              <button
-                onClick={handleProfileClick}
-                className="flex items-center gap-2 hover:bg-purple-50 p-2 rounded-lg transition-colors"
-              >
-                <div className="w-8 h-8 bg-purple-600 rounded-full flex items-center justify-center text-white">
-                  <User className="w-5 h-5" />
-                </div>
-                <div>
-                  <p className="text-sm">{currentUser?.name}</p>
-                  <p className="text-xs text-gray-600">Staff</p>
-                </div>
-              </button>
               <UserButton />
             </div>
           </div>
@@ -268,11 +256,10 @@ export default function StaffDashboard() {
         <div className="mb-6 flex gap-4 border-b">
           <button
             onClick={() => setActiveTab('schedule')}
-            className={`pb-3 px-4 transition-colors ${
-              activeTab === 'schedule'
+            className={`pb-3 px-4 transition-colors ${activeTab === 'schedule'
                 ? 'border-b-2 border-purple-600 text-purple-600 font-semibold'
                 : 'text-gray-600 hover:text-purple-600'
-            }`}
+              }`}
           >
             <div className="flex items-center gap-2">
               <Calendar className="w-5 h-5" />

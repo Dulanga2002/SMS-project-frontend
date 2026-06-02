@@ -12,7 +12,7 @@ export default function CustomerDashboard() {
   const { user } = useUser();
   const { getToken } = useAuth();
   const navigate = useNavigate();
-  
+
   const [activeTab, setActiveTab] = useState('dashboard');
   const [isBookingModalOpen, setIsBookingModalOpen] = useState(false);
   const [myAppointments, setMyAppointments] = useState([]);
@@ -35,7 +35,7 @@ export default function CustomerDashboard() {
     const status = (apt.status || apt.state || 'pending').toLowerCase();
     return status === 'confirmed' || status === 'pending';
   }).length;
-  
+
   const completedCount = myAppointments.filter((apt) => {
     const status = (apt.status || apt.state || 'pending').toLowerCase();
     return status === 'completed';
@@ -47,7 +47,7 @@ export default function CustomerDashboard() {
       if (currentUser) {
         const tk = await getToken();
         setToken(tk);
-        
+
         if (tk) {
           try {
             const data = await getMyAppointments(tk);
@@ -122,16 +122,6 @@ export default function CustomerDashboard() {
             <span className="text-2xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">Aura</span>
           </div>
           <div className="flex items-center gap-4">
-            {loading && <span className="text-xs text-gray-500">Syncing...</span>}
-            <button onClick={handleProfileClick} className="flex items-center gap-2 hover:bg-purple-50 p-2 rounded-lg transition-colors">
-              <div className="w-8 h-8 bg-purple-600 rounded-full flex items-center justify-center text-white font-bold">
-                {currentUser?.name ? currentUser.name.charAt(0).toUpperCase() : 'U'}
-              </div>
-              <div className="text-left hidden sm:block">
-                <p className="text-sm font-semibold">{currentUser?.name || user?.fullName || user?.primaryEmailAddress?.emailAddress}</p>
-                <p className="text-xs text-gray-550 capitalize">{currentUser?.role || 'Customer'}</p>
-              </div>
-            </button>
             <UserButton afterSignOutUrl="/" />
           </div>
         </div>
@@ -221,7 +211,7 @@ export default function CustomerDashboard() {
                     const svcNames = apt.services?.map(s => s.serviceName).join(', ') || 'Service';
                     const aptDate = apt.appointmentDate ? new Date(apt.appointmentDate).toLocaleDateString() : 'Date TBD';
                     const status = (apt.status || apt.state || 'pending').toLowerCase();
-                    
+
                     return (
                       <div key={apt._id || apt.id} className="flex flex-col sm:flex-row sm:items-center justify-between p-4 bg-gray-50 border border-gray-100 rounded-xl transition-all gap-4">
                         <div className="flex items-center gap-3">
@@ -253,12 +243,11 @@ export default function CustomerDashboard() {
                               Leave a Review
                             </button>
                           )}
-                          <span className={`text-xs font-semibold px-3 py-1 rounded-full capitalize shrink-0 ${
-                            status === 'confirmed' ? 'bg-blue-50 text-blue-700 border border-blue-100' :
-                            status === 'completed' ? 'bg-green-50 text-green-700 border border-green-100' :
-                            status === 'pending' ? 'bg-yellow-50 text-yellow-800 border border-yellow-100' :
-                            'bg-red-50 text-red-700 border border-red-100'
-                          }`}>
+                          <span className={`text-xs font-semibold px-3 py-1 rounded-full capitalize shrink-0 ${status === 'confirmed' ? 'bg-blue-50 text-blue-700 border border-blue-100' :
+                              status === 'completed' ? 'bg-green-50 text-green-700 border border-green-100' :
+                                status === 'pending' ? 'bg-yellow-50 text-yellow-800 border border-yellow-100' :
+                                  'bg-red-50 text-red-700 border border-red-100'
+                            }`}>
                             {status}
                           </span>
                         </div>
@@ -287,7 +276,7 @@ export default function CustomerDashboard() {
                 <Star className="w-6 h-6 text-amber-500 fill-amber-500" />
                 Review Your Visit
               </h3>
-              
+
               <form onSubmit={handleReviewSubmit} className="space-y-5">
                 {/* Select Service */}
                 <div>
