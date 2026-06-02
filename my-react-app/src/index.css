@@ -1,3 +1,13 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* Increase base font size for better readability (from 16px -> 18px) */
+html {
+	font-size: 18px;
+}
+
+/* Improve default body line-height for readability */
+body {
+	line-height: 1.6;
+}

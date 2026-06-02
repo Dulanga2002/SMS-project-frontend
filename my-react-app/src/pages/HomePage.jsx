@@ -79,9 +79,12 @@ export default function HomePage() {
                     </button>
                   </Link>
                 </SignedIn>
-                <button className="px-8 py-3 border-2 border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors font-medium">
+                <Link
+                  to="/about"
+                  className="px-8 py-3 border-2 border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors font-medium"
+                >
                   Learn More
-                </button>
+                </Link>
               </div>
             </div>
 
@@ -163,26 +166,40 @@ export default function HomePage() {
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
             {beautyTips.map((tip) => (
-              <div 
-                key={tip.id} 
-                className="bg-black rounded-xl overflow-hidden relative group cursor-pointer hover:scale-105 transition-transform duration-300"
+              <a
+                key={tip.id}
+                href={tip.url || '#'}
+                target={tip.url ? '_blank' : undefined}
+                rel={tip.url ? 'noreferrer' : undefined}
+                className={`rounded-xl overflow-hidden relative group transition-transform duration-300 ${
+                  tip.url ? 'cursor-pointer hover:scale-105' : 'cursor-default'
+                }`}
               >
-                {/* Video Thumbnail */}
-                <div className="aspect-video bg-gradient-to-br from-gray-800 to-black flex items-center justify-center relative">
-                  <div className="absolute top-3 left-3 bg-black/70 text-white text-xs px-2 py-1 rounded">
+                <div className="aspect-video bg-black relative overflow-hidden">
+                  {tip.thumbnail ? (
+                    <img
+                      src={tip.thumbnail}
+                      alt={tip.title}
+                      className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-110"
+                    />
+                  ) : (
+                    <div className="h-full w-full bg-gradient-to-br from-gray-800 to-black" />
+                  )}
+                  <div className="absolute top-3 left-3 bg-black/75 text-white text-xs px-2 py-1 rounded">
                     {tip.duration}
                   </div>
-                  <div className="w-14 h-14 bg-white rounded-full flex items-center justify-center group-hover:scale-110 transition-transform">
-                    <Play className="w-6 h-6 text-purple-600 ml-1" fill="currentColor" />
+                  <div className="absolute inset-0 flex items-center justify-center bg-black/10 group-hover:bg-black/20 transition-colors">
+                    <div className="w-14 h-14 bg-white rounded-full flex items-center justify-center group-hover:scale-110 transition-transform shadow-lg">
+                      <Play className="w-6 h-6 text-purple-600 ml-1" fill="currentColor" />
+                    </div>
                   </div>
                 </div>
-                
-                {/* Video Info */}
+
                 <div className="p-4 bg-white">
                   <p className="text-xs text-purple-600 mb-1 uppercase tracking-wide">{tip.category}</p>
                   <p className="text-sm font-medium text-gray-900">{tip.title}</p>
                 </div>
-              </div>
+              </a>
             ))}
           </div>
         </div>
@@ -234,20 +251,26 @@ export default function HomePage() {
             <div>
               <h4 className="text-lg mb-4">Services</h4>
               <ul className="space-y-2 text-sm text-gray-400">
-                <li className="hover:text-white cursor-pointer transition-colors">Hair Cut</li>
-                <li className="hover:text-white cursor-pointer transition-colors">Hair Color</li>
-                <li className="hover:text-white cursor-pointer transition-colors">Hair Straightening</li>
+                <li className="">Hair Cut</li>
+                <li className="">Hair Color</li>
+                <li className="">Hair Straightening</li>
               </ul>
             </div>
 
             {/* Company */}
             <div>
               <h4 className="text-lg mb-4">Company</h4>
-              <ul className="space-y-2 text-sm text-gray-400">
-                <li className="hover:text-white cursor-pointer transition-colors">About Us</li>
-                <li className="hover:text-white cursor-pointer transition-colors">Contact</li>
-                <li className="hover:text-white cursor-pointer transition-colors">Careers</li>
-              </ul>
+                <ul className="space-y-2 text-sm text-gray-400">
+                  <li>
+                    <Link to="/about" className="hover:text-white transition-colors">About Us</Link>
+                  </li>
+                  <li>
+                    <Link to="/contact" className="hover:text-white transition-colors">Contact</Link>
+                  </li>
+                  <li>
+                    <Link to="/careers" className="hover:text-white transition-colors">Careers</Link>
+                  </li>
+                </ul>
             </div>
 
             {/* Hours */}
