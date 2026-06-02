@@ -4,12 +4,13 @@ import { useApp } from '../context/AppContext';
 import { useNavigate } from 'react-router-dom';
 import AppointmentList from './AppointmentList';
 import { getAllUsers } from '../services/userService';
-import { createService } from '../services/api';
-import { getAllAppointments } from '../services/api';
+import api from '../services/api';
+import { useAuth } from '@clerk/clerk-react';
 
 export default function AdminDashboard() {
   const { currentUser, logout, services, staff, addStaff, updateStaff, deleteStaff } = useApp();
   const navigate = useNavigate();
+  const { getToken } = useAuth();
   const [activeTab, setActiveTab] = useState('overview');
   const [users, setUsers] = useState([]);
   const [appointments, setAppointments] = useState([]);
@@ -28,7 +29,7 @@ export default function AdminDashboard() {
     // fetch all appointments
     const fetchAppointments = async () => {
       try {
-        const appointmentsData = await getAllAppointments();
+        const appointmentsData = await api.getAllAppointments();
         console.log('Fetched appointments:', appointmentsData);
         setAppointments(appointmentsData);
       } catch (error) {
@@ -64,6 +65,21 @@ export default function AdminDashboard() {
   const handleLogout = () => {
     logout();
     navigate('/');
+  };
+
+  const handleDeleteAppointment = async (id) => {
+    if (window.confirm('Are you sure you want to delete this appointment? This action will notify the staff and customer.')) {
+      try {
+        const token = await getToken();
+        await api.deleteAppointment(token, id);
+        alert('Appointment deleted successfully!');
+        // Remove from local state
+        setAppointments(prev => prev.filter(apt => (apt._id || apt.id) !== id));
+      } catch (error) {
+        alert('Failed to delete appointment: ' + (error.message || 'Please try again'));
+        console.error('Delete appointment error:', error);
+      }
+    }
   };
 
   // Calculate statistics
@@ -162,7 +178,7 @@ export default function AdminDashboard() {
     }
 
     try {
-      await createService({
+      await api.createService({
         name: serviceForm.name,
         description: serviceForm.description,
         price: parseFloat(serviceForm.price),
@@ -291,7 +307,7 @@ export default function AdminDashboard() {
 
         {activeTab === 'appointments' && (
           <div>
-            <AppointmentList appointments={appointments} userRole="admin" />
+            <AppointmentList appointments={appointments} userRole="admin" onDelete={handleDeleteAppointment} />
           </div>
         )}
 

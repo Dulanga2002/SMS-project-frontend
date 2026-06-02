@@ -1,6 +1,6 @@
-import { Calendar, Clock, DollarSign, CheckCircle, XCircle, AlertCircle } from 'lucide-react';
+import { Calendar, Clock, DollarSign, CheckCircle, XCircle, AlertCircle, Trash2 } from 'lucide-react';
 
-export default function AppointmentList({ appointments = [], userRole }) {
+export default function AppointmentList({ appointments = [], userRole, onDelete }) {
   const formatDate = (value) => {
     if (!value) {
       return '—';
@@ -99,6 +99,15 @@ export default function AppointmentList({ appointments = [], userRole }) {
                     Staff: {appointment?.staff?.staffName || 'Unassigned'}
                   </p>
                 </div>
+                {userRole === 'admin' && onDelete && (
+                  <button
+                    onClick={() => onDelete(appointment?._id || appointment?.id)}
+                    className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                    title="Delete Appointment"
+                  >
+                    <Trash2 className="w-5 h-5" />
+                  </button>
+                )}
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
