@@ -1,4 +1,5 @@
-const API_URL =  'http://localhost:5000/api';
+// API Service integration with backend
+const API_URL = 'http://localhost:5000/api';
 
 // Sync user with backend
 export const syncUser = async (token) => {
@@ -137,7 +138,7 @@ export const getAllAppointments = async () => {
 
     const data = await response.json();
     console.log('getAllAppointments response data:', data);
-    
+
     // Extract appointments array from response
     // Response format: { message: "...", appointments: [...], count: ... }
     const appointments = data.appointments || [];
@@ -148,18 +149,45 @@ export const getAllAppointments = async () => {
   }
 };
 
-// Get assigned slots for a staff member (optionally by date)
-export const getAssignedSlots = async (staffUserId, date) => {
+// Delete appointment (for admin)
+export const deleteAppointment = async (token, id) => {
   try {
-    const params = new URLSearchParams({ staffUserId });
-    if (date) {
-      params.set('date', date);
+    const response = await fetch(`${API_URL}/newAppointment/${id}`, {
+      method: 'DELETE',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      }
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.message || 'Failed to delete appointment');
     }
 
-    const response = await fetch(`${API_URL}/newAppointment/assigned-slots?${params.toString()}`, {
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    console.error('Error deleting appointment:', error);
+    throw error;
+  }
+};
+
+// Get assigned slots for a staff member (optionally by date)
+export const getAssignedSlots = async (token, staffUserId, date) => {
+  try {
+    let url = `${API_URL}/newAppointment/assigned-slots`;
+    const params = new URLSearchParams();
+    if (staffUserId) params.append('staffUserId', staffUserId);
+    if (date) params.append('date', date);
+    if (params.toString()) {
+      url += `?${params.toString()}`;
+    }
+    const response = await fetch(url, {
       method: 'GET',
       headers: {
-        'Content-Type': 'application/json'
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
       }
     });
 
@@ -171,6 +199,54 @@ export const getAssignedSlots = async (staffUserId, date) => {
     return data;
   } catch (error) {
     console.error('Error getting assigned slots:', error);
+    throw error;
+  }
+};
+
+// Mark a staff slot as unavailable
+export const markStaffSlotUnavailable = async (token, appointmentData) => {
+  try {
+    const response = await fetch(`${API_URL}/newAppointment/mark-unavailable`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      },
+      body: JSON.stringify(appointmentData)
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.message || 'Failed to mark slot unavailable');
+    }
+
+    return await response.json();
+  } catch (error) {
+    console.error('Error marking staff slot unavailable:', error);
+    throw error;
+  }
+};
+
+// Remove a staff unavailable slot
+export const removeStaffSlotUnavailable = async (token, appointmentData) => {
+  try {
+    const response = await fetch(`${API_URL}/newAppointment/remove-unavailable`, {
+      method: 'DELETE',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      },
+      body: JSON.stringify(appointmentData)
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.message || 'Failed to remove unavailable slot');
+    }
+
+    return await response.json();
+  } catch (error) {
+    console.error('Error removing staff slot unavailable:', error);
     throw error;
   }
 };
@@ -245,6 +321,53 @@ export const createService = async (serviceData) => {
   }
 };
 
+export const getReviews = async (serviceId, staffId, page, limit) => {
+  try {
+    const params = new URLSearchParams();
+    if (serviceId) params.append('serviceId', serviceId);
+    if (staffId) params.append('staffId', staffId);
+    if (page) params.append('page', page);
+    if (limit) params.append('limit', limit);
+    const url = `${API_URL}/reviews${params.toString() ? '?' + params.toString() : ''}`;
+    const response = await fetch(url);
+    if (!response.ok) throw new Error('Failed to fetch reviews');
+    return await response.json();
+  } catch (e) {
+    console.error(e);
+    throw e;
+  }
+}
+
+export const createReview = async (token, reviewData) => {
+  try {
+    const response = await fetch(`${API_URL}/reviews`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify(reviewData),
+    });
+    if (!response.ok) {
+      let errorMessage = 'Failed to create review';
+      try {
+        const err = await response.json();
+        errorMessage = err.message || errorMessage;
+      } catch (jsonErr) {
+        try {
+          const text = await response.text();
+          errorMessage = text || errorMessage;
+        } catch (textErr) {}
+      }
+      throw new Error(errorMessage);
+    }
+    return await response.json();
+  } catch (e) {
+    console.error(e);
+    throw e;
+  }
+}
+
 export default {
   syncUser,
   getUserProfile,
@@ -253,7 +376,12 @@ export default {
   getAssignedSlots,
   getStaffAppointments,
   getAllAppointments,
+  deleteAppointment,
   getServices,
   getStaff,
-  createService
+  createService,
+  // Get reviews (public)
+  getReviews,
+  // Create a review (authenticated)
+  createReview
 };
