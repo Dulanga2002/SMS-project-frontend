@@ -78,7 +78,8 @@ export default function BookAppointmentModal({ isOpen, onClose }) {
       try {
         setSlotsLoading(true);
         const staffUserId = selectedStaff.userId || selectedStaff.id;
-        const data = await getAssignedSlots(staffUserId, selectedDate);
+        const token = await getToken();
+        const data = await getAssignedSlots(token, staffUserId, selectedDate);
         setAssignedSlots(Array.isArray(data?.assignedSlotes) ? data.assignedSlotes : []);
       } catch (error) {
         console.error('Error fetching assigned slots:', error);

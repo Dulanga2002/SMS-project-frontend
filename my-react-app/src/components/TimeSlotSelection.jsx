@@ -2,9 +2,12 @@ import { useState, useEffect } from 'react';
 import { Calendar, Clock, Check, ArrowLeft } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 import { getAssignedSlots } from '../services/api';
+import { useAuth, useUser } from '@clerk/clerk-react';
 
 export default function TimeSlotSelection({ service, staff, onBack }) {
   const { bookAppointment } = useApp();
+  const { getToken } = useAuth();
+  const { user } = useUser();
   const [selectedDate, setSelectedDate] = useState('');
   const [selectedTime, setSelectedTime] = useState('');
   const [showConfirmation, setShowConfirmation] = useState(false);
@@ -20,7 +23,9 @@ export default function TimeSlotSelection({ service, staff, onBack }) {
 
       try {
         setSlotsLoading(true);
-        const data = await getAssignedSlots(staff.userId, selectedDate);
+        const staffUserId = staff.userId || staff.id;
+        const token = await getToken();
+        const data = await getAssignedSlots(token, staffUserId, selectedDate);
         setAssignedSlots(Array.isArray(data?.assignedSlotes) ? data.assignedSlotes : []);
       } catch (error) {
         console.error('Error fetching assigned slots:', error);
