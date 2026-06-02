@@ -43,23 +43,17 @@ export default function CustomerDashboard() {
 
   // Fetch token and customer appointments
   useEffect(() => {
-    const fetchTokenAndData = async () => {
-      if (currentUser) {
-        const tk = await getToken();
-        setToken(tk);
-
-        if (tk) {
-          try {
-            const data = await getMyAppointments(tk);
-            setMyAppointments(Array.isArray(data) ? data : []);
-          } catch (error) {
-            console.error('Error fetching appointments:', error);
-          }
-        }
-      }
-    };
-    fetchTokenAndData();
-  }, [currentUser]);
+    const fetchAppointments = async () => {
+      try {
+        const token = await getToken();
+        const appointments = await getMyAppointments(token);
+        setMyAppointments(appointments);
+      } catch (error) {
+        console.error('Error fetching appointments:', error);
+      } 
+    }
+    fetchAppointments();
+  }, []);
 
   // Fetch public reviews
   const fetchReviews = async () => {
