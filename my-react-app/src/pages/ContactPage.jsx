@@ -49,6 +49,12 @@ export default function ContactPage() {
                     </a>
                   </p>
                   <p>
+                    <strong className="block text-gray-900 text-sm uppercase tracking-wide mb-1">Email</strong>
+                    <a href="mailto:dulanganikeshala2@gmail.com" className="text-purple-600 hover:underline text-2xl font-semibold">
+                      dulanganikeshala2@gmail.com
+                    </a>
+                  </p>
+                  <p>
                     <strong className="block text-gray-900 text-sm uppercase tracking-wide mb-1">Address</strong>
                     <span className="text-xl">Moratuwa, Sri Lanka</span>
                   </p>
