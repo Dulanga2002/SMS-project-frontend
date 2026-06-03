@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Scissors, Calendar, Plus, DollarSign, Clock, X } from 'lucide-react';
+import { Scissors, Calendar, Plus, DollarSign, Clock, X, ArrowRight, TrendingUp, BadgeCheck, AlertCircle, XCircle, Sparkles, CalendarDays, ReceiptText, Users } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 import { useNavigate, Link } from 'react-router-dom';
 import AppointmentList from './AppointmentList';
@@ -63,6 +63,83 @@ export default function AdminDashboard() {
   const rejectedCount = appointments.filter(apt => apt.status === 'rejected').length;
   const completedCount = appointments.filter(apt => apt.status === 'completed').length;
   const upcomingCount = appointments.filter(apt => apt.status === 'pending' || apt.status === 'confirmed').length;
+  const totalRevenue = appointments.reduce((sum, appointment) => {
+    const directTotal = Number(appointment?.totalCost || appointment?.service?.price || 0);
+    const serviceTotal = Array.isArray(appointment?.services)
+      ? appointment.services.reduce((serviceSum, service) => serviceSum + Number(service?.serviceCost || 0), 0)
+      : 0;
+
+    return sum + (directTotal || serviceTotal);
+  }, 0);
+
+  const recentAppointments = [...appointments]
+    .sort((left, right) => new Date(right.createdAt || right.appointmentDate || 0) - new Date(left.createdAt || left.appointmentDate || 0))
+    .slice(0, 4);
+
+  const overviewMetrics = [
+    {
+      label: 'Total Appointments',
+      value: totalAppointments,
+      icon: CalendarDays,
+      gradient: 'from-purple-600 to-pink-600',
+      text: 'Booked across all customers',
+    },
+    {
+      label:'Pending Appointments',
+      value: upcomingCount,
+      icon: AlertCircle,
+      gradient: 'from-amber-500 to-yellow-500',
+      text: 'Upcoming visits ',
+    },
+    {
+      label: 'Completed',
+      value: completedCount,
+      icon: BadgeCheck,
+      gradient: 'from-emerald-600 to-teal-500',
+      text: 'Successful finished visits',
+    },
+    {
+      label: 'Revenue',
+      value: `LKR ${totalRevenue.toLocaleString()}`,
+      icon: ReceiptText,
+      gradient: 'from-amber-500 to-orange-500',
+      text: 'Approximate service income',
+    },
+  ];
+
+  const statusSummary = [
+   
+    { label: 'Pending', value: upcomingCount - acceptedCount, color: 'text-amber-600', bg: 'bg-amber-50', icon: AlertCircle },
+   
+    { label: 'Completed', value: completedCount, color: 'text-emerald-600', bg: 'bg-emerald-50', icon: TrendingUp },
+  ];
+
+  const getStatusStyles = (status) => {
+    const normalized = (status || 'pending').toLowerCase();
+    const styles = {
+      pending: 'bg-amber-50 text-amber-700 ring-1 ring-amber-200',
+      confirmed: 'bg-blue-50 text-blue-700 ring-1 ring-blue-200',
+      completed: 'bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200',
+      cancelled: 'bg-red-50 text-red-700 ring-1 ring-red-200',
+    };
+
+    return styles[normalized] || styles.pending;
+  };
+
+  const formatDisplayDate = (value) => {
+    if (!value) return '—';
+    const parsed = new Date(value);
+    if (Number.isNaN(parsed.getTime())) return '—';
+    return parsed.toLocaleDateString([], { month: 'short', day: 'numeric', year: 'numeric' });
+  };
+
+  const formatDisplayTime = (value) => {
+    if (!value) return '—';
+    if (typeof value === 'string') return value;
+    const parsed = new Date(value);
+    if (Number.isNaN(parsed.getTime())) return '—';
+    return parsed.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  };
   
 
   const handleAddService = async (e) => {
@@ -157,20 +234,179 @@ export default function AdminDashboard() {
       {/* Content */}
       <main className="container mx-auto px-4 py-8 flex-grow">
         {activeTab === 'overview' && (
-          <>
-            {/* Stats Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-              <div className="bg-gradient-to-br from-purple-600 to-pink-600 text-white rounded-lg p-6">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm opacity-90 mb-1">Total Appointments</p>
-                    <p className="text-4xl">{totalAppointments}</p>
+          <div className="space-y-8">
+            <section className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-purple-600 via-fuchsia-600 to-pink-600 text-white shadow-2xl">
+              <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,_rgba(255,255,255,0.18),_transparent_35%),radial-gradient(circle_at_bottom_left,_rgba(255,255,255,0.12),_transparent_30%)]" />
+              <div className="relative grid gap-8 px-6 py-8 lg:grid-cols-[1.4fr_0.9fr] lg:px-8 lg:py-10">
+                <div className="space-y-5">
+                  <div className="inline-flex items-center gap-2 rounded-full bg-white/15 px-4 py-2 text-sm backdrop-blur">
+                    
+                    Admin Overview
                   </div>
-                  <Calendar className="w-12 h-12 opacity-80" />
+                  <div>
+                    <p className="text-sm uppercase tracking-[0.28em] text-white/70">Welcome back</p>
+                    <h1 className="mt-2 text-3xl font-semibold tracking-tight lg:text-4xl">
+                      {currentUser?.name || 'Salon Admin'}
+                    </h1>
+                    <p className="mt-3 max-w-2xl text-sm leading-6 text-white/85 lg:text-base">
+                      Monitor appointments, track service performance, and keep the salon experience polished from a single dashboard.
+                    </p>
+                  </div>
+
+                  <div className="flex flex-wrap gap-3">
+                    <button
+                      onClick={() => setActiveTab('appointments')}
+                      className="inline-flex items-center gap-2 rounded-full bg-white px-5 py-3 text-sm font-semibold text-purple-700 shadow-lg transition-transform hover:-translate-y-0.5"
+                    >
+                      View appointments
+                      <ArrowRight className="h-4 w-4" />
+                    </button>
+                    <button
+                      onClick={() => setActiveTab('services')}
+                      className="inline-flex items-center gap-2 rounded-full border border-white/25 bg-white/10 px-5 py-3 text-sm font-semibold text-white backdrop-blur transition-colors hover:bg-white/15"
+                    >
+                      Manage services
+                    </button>
+                  </div>
+                </div>
+
+                <div className="grid gap-3 rounded-2xl bg-white/10 p-4 backdrop-blur-sm sm:grid-cols-2 lg:grid-cols-1">
+                  <div className="rounded-2xl bg-white/10 p-4">
+                    <p className="text-xs uppercase tracking-[0.24em] text-white/65">Total Appointments</p>
+                    <p className="mt-2 text-3xl font-semibold">{totalAppointments}</p>
+                  </div>
+                  <div className="rounded-2xl bg-white/10 p-4">
+                    <p className="text-xs uppercase tracking-[0.24em] text-white/65">Revenue Snapshot</p>
+                    <p className="mt-2 text-3xl font-semibold">LKR {totalRevenue.toLocaleString()}</p>
+                  </div>
                 </div>
               </div>
-            </div>
-          </>
+            </section>
+
+            <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+              {overviewMetrics.map((metric) => {
+                const MetricIcon = metric.icon;
+                return (
+                  <article key={metric.label} className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm transition-shadow hover:shadow-md">
+                    <div className={`inline-flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br ${metric.gradient} text-white shadow-lg`}>
+                      <MetricIcon className="h-5 w-5" />
+                    </div>
+                    <p className="mt-4 text-sm font-medium text-gray-500">{metric.label}</p>
+                    <p className="mt-1 text-2xl font-semibold text-gray-900">{metric.value}</p>
+                    <p className="mt-2 text-sm text-gray-500">{metric.text}</p>
+                  </article>
+                );
+              })}
+            </section>
+
+    
+
+            <section className="grid gap-6 xl:grid-cols-[1.3fr_0.95fr]">
+              <div className="rounded-3xl border border-gray-200 bg-white p-6 shadow-sm">
+                <div className="flex items-center justify-between gap-4">
+                  <div>
+                    <p className="text-sm font-medium text-purple-600">Latest Activity</p>
+                    <h2 className="text-2xl font-semibold text-gray-900">Recent appointments</h2>
+                  </div>
+                  <span className="rounded-full bg-purple-50 px-3 py-1 text-xs font-semibold text-purple-700">
+                    {recentAppointments.length} latest
+                  </span>
+                </div>
+
+                <div className="mt-6 space-y-4">
+                  {recentAppointments.length > 0 ? (
+                    recentAppointments.map((appointment, index) => {
+                      const status = (appointment?.status || 'pending').toLowerCase();
+                      const totalCost = Number(appointment?.totalCost || appointment?.service?.price || 0) || 0;
+
+                      return (
+                        <div key={appointment?._id || appointment?.id || `recent-${index}`} className="rounded-2xl border border-gray-200 p-4 transition-shadow hover:shadow-md">
+                          <div className="flex flex-wrap items-start justify-between gap-3">
+                            <div>
+                              <div className="flex items-center gap-2">
+                                <p className="font-semibold text-gray-900">
+                                  {appointment?.customer?.customerName || appointment?.customer?.name || 'Customer'}
+                                </p>
+                                <span className={`rounded-full px-2.5 py-1 text-xs font-semibold ${getStatusStyles(status)}`}>
+                                  {status}
+                                </span>
+                              </div>
+                              <p className="mt-1 text-sm text-gray-500">
+                                {appointment?.service?.name || appointment?.services?.[0]?.serviceName || 'Service'}
+                              </p>
+                            </div>
+
+                            <p className="text-sm font-semibold text-purple-600">LKR {totalCost.toLocaleString()}</p>
+                          </div>
+
+                          <div className="mt-4 grid gap-3 text-sm text-gray-600 sm:grid-cols-3">
+                            <div className="flex items-center gap-2">
+                              <Calendar className="h-4 w-4 text-purple-600" />
+                              {formatDisplayDate(appointment?.appointmentDate || appointment?.date)}
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <Clock className="h-4 w-4 text-purple-600" />
+                              {formatDisplayTime(appointment?.appointmentTime || appointment?.startTime)}
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <Users className="h-4 w-4 text-purple-600" />
+                              {appointment?.staff?.staffName || appointment?.staff?.name || 'Staff'}
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })
+                  ) : (
+                    <div className="rounded-2xl border border-dashed border-gray-300 bg-gray-50 p-8 text-center">
+                      <Calendar className="mx-auto h-12 w-12 text-gray-300" />
+                      <p className="mt-3 font-semibold text-gray-800">No appointments yet</p>
+                      <p className="mt-1 text-sm text-gray-500">New bookings will appear here automatically.</p>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              <div className="rounded-3xl border border-gray-200 bg-white p-6 shadow-sm">
+                <div className="flex items-center justify-between gap-4">
+                  <div>
+                    <p className="text-sm font-medium text-purple-600">Salon Inventory</p>
+                    <h2 className="text-2xl font-semibold text-gray-900">Services at a glance</h2>
+                  </div>
+                  <button
+                    onClick={() => setActiveTab('services')}
+                    className="inline-flex items-center gap-2 rounded-full border border-gray-200 px-4 py-2 text-sm font-medium text-gray-700 transition-colors hover:border-purple-200 hover:text-purple-600"
+                  >
+                    Open services
+                    <ArrowRight className="h-4 w-4" />
+                  </button>
+                </div>
+
+                <div className="mt-6 space-y-3">
+                  {services && services.length > 0 ? services.slice(0, 4).map((service) => (
+                    <div key={service.id} className="rounded-2xl border border-gray-200 p-4">
+                      <div className="flex items-start justify-between gap-3">
+                        <div>
+                          <p className="font-semibold text-gray-900">{service.name}</p>
+                          <p className="mt-1 text-sm text-gray-500">{service.description}</p>
+                        </div>
+                        <span className="rounded-full bg-purple-50 px-3 py-1 text-xs font-semibold text-purple-700">
+                          {service.duration}h
+                        </span>
+                      </div>
+                      <div className="mt-4 flex items-center justify-between text-sm">
+                        <span className="text-gray-500">Price</span>
+                        <span className="font-semibold text-purple-700">LKR {service.price}</span>
+                      </div>
+                    </div>
+                  )) : (
+                    <div className="rounded-2xl border border-dashed border-gray-300 bg-gray-50 p-8 text-center text-gray-500">
+                      No services available yet.
+                    </div>
+                  )}
+                </div>
+              </div>
+            </section>
+          </div>
         )}
 
         {activeTab === 'appointments' && (
