@@ -1,9 +1,9 @@
 import { useState, useEffect } from 'react';
-import { Scissors, Calendar, Plus, DollarSign, Clock, X, ArrowRight, TrendingUp, BadgeCheck, AlertCircle, XCircle, Sparkles, CalendarDays, ReceiptText, Users } from 'lucide-react';
+import { Scissors, Calendar, Plus, DollarSign, Clock, X, ArrowRight, TrendingUp, BadgeCheck, AlertCircle, XCircle, Sparkles, CalendarDays, ReceiptText, Users, Trash2 } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 import { useNavigate, Link } from 'react-router-dom';
 import AppointmentList from './AppointmentList';
-import api from '../services/api';
+import api, { deleteService } from '../services/api';
 import { useAuth, UserButton } from '@clerk/clerk-react';
 
 export default function AdminDashboard() {
@@ -173,6 +173,28 @@ export default function AdminDashboard() {
     } catch (error) {
       alert('Failed to create service: ' + (error.message || 'Please try again'));
       console.error('Service creation error:', error);
+    }
+  };
+
+  const handleDeleteService = async (serviceId, serviceName) => {
+    const confirmed = window.confirm(`Delete ${serviceName}? This will remove it from the database.`);
+    if (!confirmed) {
+      return;
+    }
+
+    try {
+      const token = await getToken();
+      if (!token) {
+        alert('User not authenticated');
+        return;
+      }
+
+      await deleteService(token, serviceId);
+      alert('Service deleted successfully!');
+      window.location.reload();
+    } catch (error) {
+      console.error('Service deletion error:', error);
+      alert(error.message || 'Failed to delete service');
     }
   };
 
@@ -389,9 +411,19 @@ export default function AdminDashboard() {
                           <p className="font-semibold text-gray-900">{service.name}</p>
                           <p className="mt-1 text-sm text-gray-500">{service.description}</p>
                         </div>
-                        <span className="rounded-full bg-purple-50 px-3 py-1 text-xs font-semibold text-purple-700">
-                          {service.duration}h
-                        </span>
+                        <div className="flex items-center gap-2">
+                          <span className="rounded-full bg-purple-50 px-3 py-1 text-xs font-semibold text-purple-700">
+                            {service.duration}h
+                          </span>
+                          <button
+                            type="button"
+                            onClick={() => handleDeleteService(service.id, service.name)}
+                            className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-red-200 bg-red-50 text-red-600 transition-colors hover:bg-red-100"
+                            title={`Delete ${service.name}`}
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </button>
+                        </div>
                       </div>
                       <div className="mt-4 flex items-center justify-between text-sm">
                         <span className="text-gray-500">Price</span>
@@ -542,7 +574,17 @@ export default function AdminDashboard() {
                       key={service.id}
                       className="border rounded-lg p-4 hover:shadow-lg transition-shadow"
                     >
-                      <h4 className="font-semibold text-lg mb-2">{service.name}</h4>
+                      <div className="flex items-start justify-between gap-3 mb-2">
+                        <h4 className="font-semibold text-lg">{service.name}</h4>
+                        <button
+                          type="button"
+                          onClick={() => handleDeleteService(service.id, service.name)}
+                          className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-red-200 bg-red-50 text-red-600 transition-colors hover:bg-red-100"
+                          title={`Delete ${service.name}`}
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </button>
+                      </div>
                       <p className="text-gray-600 text-sm mb-3">{service.description}</p>
                       <div className="space-y-2">
                         <div className="flex items-center justify-between text-sm">

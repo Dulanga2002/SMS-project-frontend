@@ -321,6 +321,29 @@ export const createService = async (serviceData) => {
   }
 };
 
+// Delete service (admin)
+export const deleteService = async (token, id) => {
+  try {
+    const response = await fetch(`${API_URL}/services/${id}`, {
+      method: 'DELETE',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`,
+      },
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.message || 'Failed to delete service');
+    }
+
+    return await response.json();
+  } catch (error) {
+    console.error('Error deleting service:', error);
+    throw error;
+  }
+};
+
 export const getReviews = async (serviceId, staffId, page, limit) => {
   try {
     const params = new URLSearchParams();
@@ -380,6 +403,7 @@ export default {
   getServices,
   getStaff,
   createService,
+  deleteService,
   // Get reviews (public)
   getReviews,
   // Create a review (authenticated)
