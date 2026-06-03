@@ -123,6 +123,38 @@ export const AppProvider = ({ children }) => {
       duration: '6:15',
       url: 'https://www.youtube.com/watch?v=ZM3n0OSrK9g',
       thumbnail: 'https://img.youtube.com/vi/ZM3n0OSrK9g/hqdefault.jpg'
+    },
+    {
+      id: 5,
+      title: 'Types of haircut for boys with names',
+      category: 'Trending Hairstyles',
+      duration: '0:36',
+      url: 'https://www.youtube.com/watch?v=mRHitJBSuyE',
+      thumbnail: 'https://img.youtube.com/vi/mRHitJBSuyE/hqdefault.jpg'
+    },
+    {
+      id: 6,
+      title: 'Which hair product should you use?',
+      category: 'Hair Maintenance',
+      duration: '10:38',
+      url: 'https://www.youtube.com/watch?v=vEyzhPdRFXA',
+      thumbnail: 'https://img.youtube.com/vi/vEyzhPdRFXA/hqdefault.jpg'
+    },
+    {
+      id: 7,
+      title: 'How to Get that Messy Layered Hairstyle',
+      category: 'Fashion & Style',
+      duration: '3:48',
+      url: 'https://www.youtube.com/watch?v=Qc1QQsDSaTQ',
+      thumbnail: 'https://img.youtube.com/vi/Qc1QQsDSaTQ/hqdefault.jpg'
+    },
+    {
+      id: 8,
+      title: 'how to get LAYERED HAIRCUT',
+      category: 'Haircut Guide',
+      duration: '8:54',
+      url: 'https://www.youtube.com/watch?v=4-h3fCoSd-I',
+      thumbnail: 'https://img.youtube.com/vi/4-h3fCoSd-I/hqdefault.jpg'
     }
   ];
 

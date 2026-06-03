@@ -31,7 +31,7 @@ export default function AboutPage() {
           <div className="max-w-8xl mx-auto mb-6">
             <Link
               to="/"
-              className="inline-flex items-center px-4 py-2 rounded-lg border border-gray-200 text-gray-700 hover:bg-gray-50 transition-colors"
+              className="inline-flex items-center px-4 py-2 rounded-lg border border-gray-200 text-gray-700 hover:bg-purple-100 transition-colors"
             >
               Back to Home
             </Link>

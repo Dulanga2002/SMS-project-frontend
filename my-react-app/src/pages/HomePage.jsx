@@ -1,9 +1,9 @@
 import { Link } from 'react-router-dom';
-import { Scissors, Calendar, Users, Star, Play } from 'lucide-react';
+import { Scissors, Calendar, Users, Star, Play, ChevronLeft, ChevronRight } from 'lucide-react';
 import { SignInButton, SignedIn, SignedOut, UserButton } from '@clerk/clerk-react';
 import { useApp } from '../context/AppContext';
 import salonImage from '../assets/images/a1.jpg';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useUser } from '@clerk/clerk-react';
 
@@ -11,6 +11,45 @@ export default function HomePage() {
   const { services, beautyTips } = useApp();
   const { isLoaded, isSignedIn, user } = useUser();
   const navigate = useNavigate();
+  const [activeTipIndex, setActiveTipIndex] = useState(0);
+  const [visibleTipsCount, setVisibleTipsCount] = useState(4);
+
+  useEffect(() => {
+    const updateVisibleTipsCount = () => {
+      const width = window.innerWidth;
+
+      if (width >= 1280) {
+        setVisibleTipsCount(4);
+      } else if (width >= 768) {
+        setVisibleTipsCount(2);
+      } else {
+        setVisibleTipsCount(1);
+      }
+    };
+
+    updateVisibleTipsCount();
+    window.addEventListener('resize', updateVisibleTipsCount);
+
+    return () => window.removeEventListener('resize', updateVisibleTipsCount);
+  }, []);
+
+  const maxActiveTipIndex = Math.max(beautyTips.length - visibleTipsCount, 0);
+
+  useEffect(() => {
+    if (!beautyTips.length) return;
+
+    const slideInterval = window.setInterval(() => {
+      setActiveTipIndex((currentIndex) =>
+        currentIndex >= maxActiveTipIndex ? 0 : currentIndex + 1
+      );
+    }, 4500);
+
+    return () => window.clearInterval(slideInterval);
+  }, [beautyTips.length, maxActiveTipIndex]);
+
+  useEffect(() => {
+    setActiveTipIndex((currentIndex) => Math.min(currentIndex, maxActiveTipIndex));
+  }, [maxActiveTipIndex]);
 
   useEffect(() => {
     if (!isLoaded || !isSignedIn) return;
@@ -25,6 +64,18 @@ export default function HomePage() {
       navigate('/dashboard');
     }
   }, [isLoaded, isSignedIn, user, navigate]);
+
+  const handlePreviousTip = () => {
+    setActiveTipIndex((currentIndex) =>
+      currentIndex === 0 ? maxActiveTipIndex : currentIndex - 1
+    );
+  };
+
+  const handleNextTip = () => {
+    setActiveTipIndex((currentIndex) =>
+      currentIndex >= maxActiveTipIndex ? 0 : currentIndex + 1
+    );
+  };
 
   return (
     <div className="min-h-screen bg-white">
@@ -81,7 +132,7 @@ export default function HomePage() {
                 </SignedIn>
                 <Link
                   to="/about"
-                  className="px-8 py-3 border-2 border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors font-medium"
+                  className="px-8 py-3 border-2 border-gray-300 text-gray-700 rounded-lg hover:bg-gray-100 transition-colors font-medium"
                 >
                   Learn More
                 </Link>
@@ -164,43 +215,84 @@ export default function HomePage() {
             <p className="text-gray-600 text-lg">Learn from the experts</p>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            {beautyTips.map((tip) => (
-              <a
-                key={tip.id}
-                href={tip.url || '#'}
-                target={tip.url ? '_blank' : undefined}
-                rel={tip.url ? 'noreferrer' : undefined}
-                className={`rounded-xl overflow-hidden relative group transition-transform duration-300 ${
-                  tip.url ? 'cursor-pointer hover:scale-105' : 'cursor-default'
-                }`}
-              >
-                <div className="aspect-video bg-black relative overflow-hidden">
-                  {tip.thumbnail ? (
-                    <img
-                      src={tip.thumbnail}
-                      alt={tip.title}
-                      className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-110"
-                    />
-                  ) : (
-                    <div className="h-full w-full bg-gradient-to-br from-gray-800 to-black" />
-                  )}
-                  <div className="absolute top-3 left-3 bg-black/75 text-white text-xs px-2 py-1 rounded">
-                    {tip.duration}
-                  </div>
-                  <div className="absolute inset-0 flex items-center justify-center bg-black/10 group-hover:bg-black/20 transition-colors">
-                    <div className="w-14 h-14 bg-white rounded-full flex items-center justify-center group-hover:scale-110 transition-transform shadow-lg">
-                      <Play className="w-6 h-6 text-purple-600 ml-1" fill="currentColor" />
-                    </div>
-                  </div>
-                </div>
+          <div className="relative mx-auto max-w-7xl">
+            <button
+              type="button"
+              onClick={handlePreviousTip}
+              className="absolute left-0 sm:-left-4 top-1/2 -translate-y-1/2 z-10 w-11 h-11 rounded-full bg-white shadow-lg border border-gray-200 flex items-center justify-center text-gray-700 hover:text-purple-600 hover:shadow-xl transition-all"
+              aria-label="Previous beauty tip"
+            >
+              <ChevronLeft className="w-5 h-5" />
+            </button>
 
-                <div className="p-4 bg-white">
-                  <p className="text-xs text-purple-600 mb-1 uppercase tracking-wide">{tip.category}</p>
-                  <p className="text-sm font-medium text-gray-900">{tip.title}</p>
-                </div>
-              </a>
-            ))}
+            <button
+              type="button"
+              onClick={handleNextTip}
+              className="absolute right-0 sm:-right-4 top-1/2 -translate-y-1/2 z-10 w-11 h-11 rounded-full bg-white shadow-lg border border-gray-200 flex items-center justify-center text-gray-700 hover:text-purple-600 hover:shadow-xl transition-all"
+              aria-label="Next beauty tip"
+            >
+              <ChevronRight className="w-5 h-5" />
+            </button>
+
+            <div className="overflow-hidden rounded-3xl">
+              <div
+                className="flex w-full transition-transform duration-700 ease-in-out"
+                style={{ transform: `translateX(-${activeTipIndex * (100 / visibleTipsCount)}%)` }}
+              >
+                {beautyTips.map((tip) => (
+                  <a
+                    key={tip.id}
+                    href={tip.url || '#'}
+                    target={tip.url ? '_blank' : undefined}
+                    rel={tip.url ? 'noreferrer' : undefined}
+                    className={`flex-shrink-0 rounded-3xl overflow-hidden relative group transition-transform duration-300 ${
+                      tip.url ? 'cursor-pointer' : 'cursor-default'
+                    }`}
+                    style={{ flex: `0 0 ${100 / visibleTipsCount}%` }}
+                  >
+                    <div className="aspect-video bg-black relative overflow-hidden">
+                      {tip.thumbnail ? (
+                        <img
+                          src={tip.thumbnail}
+                          alt={tip.title}
+                          className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-110"
+                        />
+                      ) : (
+                        <div className="h-full w-full bg-gradient-to-br from-gray-800 to-black" />
+                      )}
+                      <div className="absolute top-3 left-3 bg-black/75 text-white text-xs px-2 py-1 rounded">
+                        {tip.duration}
+                      </div>
+                      <div className="absolute inset-0 flex items-center justify-center bg-black/10 group-hover:bg-black/20 transition-colors">
+                        <div className="w-14 h-14 bg-white rounded-full flex items-center justify-center group-hover:scale-110 transition-transform shadow-lg">
+                          <Play className="w-6 h-6 text-purple-600 ml-1" fill="currentColor" />
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="p-5 bg-white border border-t-0 border-gray-100">
+                      <p className="text-xs text-purple-600 mb-1 uppercase tracking-wide">{tip.category}</p>
+                      <p className="text-sm font-medium text-gray-900">{tip.title}</p>
+                    </div>
+                  </a>
+                ))}
+              </div>
+            </div>
+
+            <div className="mt-6 flex items-center justify-center gap-2">
+              {beautyTips.map((tip, index) => (
+                <button
+                  key={tip.id}
+                  type="button"
+                  onClick={() => setActiveTipIndex(index)}
+                  className={`h-2.5 rounded-full transition-all ${
+                    index === activeTipIndex ? 'w-8 bg-purple-600' : 'w-2.5 bg-gray-300 hover:bg-gray-400'
+                  }`}
+                  aria-label={`Go to beauty tip ${index + 1}`}
+                  disabled={index > maxActiveTipIndex}
+                />
+              ))}
+            </div>
           </div>
         </div>
       </section>
