@@ -99,7 +99,7 @@ export default function AppointmentList({ appointments = [], userRole, onDelete 
                     Staff: {appointment?.staff?.staffName || 'Unassigned'}
                   </p>
                 </div>
-                {userRole === 'admin' && onDelete && (
+                {(userRole === 'admin' || userRole === 'customer') && onDelete && (
                   <button
                     onClick={() => onDelete(appointment?._id || appointment?.id)}
                     className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"

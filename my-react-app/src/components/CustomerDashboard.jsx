@@ -5,7 +5,7 @@ import { useNavigate } from 'react-router-dom';
 import { useUser, UserButton, useAuth } from '@clerk/clerk-react';
 import BookAppointmentModal from './BookAppointmentModal';
 import AppointmentList from './AppointmentList';
-import { getMyAppointments, createReview, getReviews } from '../services/api';
+import { getMyAppointments, createReview, getReviews, deleteAppointment } from '../services/api';
 
 export default function CustomerDashboard() {
   const { currentUser, loading, services, staff } = useApp();
@@ -103,6 +103,30 @@ export default function CustomerDashboard() {
       alert(err.message || 'Failed to submit review');
     } finally {
       setSubmittingReview(false);
+    }
+  };
+
+  const handleDeleteAppointment = async (id) => {
+    const confirmed = window.confirm('Are you sure you want to cancel this appointment?');
+    if (!confirmed) {
+      return;
+    }
+
+    try {
+      const freshToken = await getToken();
+      if (!freshToken) {
+        alert('User not authenticated');
+        return;
+      }
+
+      await deleteAppointment(freshToken, id);
+      setMyAppointments((currentAppointments) =>
+        currentAppointments.filter((appointment) => (appointment._id || appointment.id) !== id)
+      );
+      alert('Appointment cancelled successfully.');
+    } catch (error) {
+      console.error('Error deleting appointment:', error);
+      alert(error.message || 'Failed to cancel appointment');
     }
   };
 
@@ -259,7 +283,7 @@ export default function CustomerDashboard() {
         )}
 
         {activeTab === 'appointments' && (
-          <AppointmentList appointments={myAppointments} userRole="customer" />
+          <AppointmentList appointments={myAppointments} userRole="customer" onDelete={handleDeleteAppointment} />
         )}
 
         {activeTab === 'reviews' && (
