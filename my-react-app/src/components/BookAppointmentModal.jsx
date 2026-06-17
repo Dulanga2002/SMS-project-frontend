@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { X, Calendar, Clock, User, DollarSign, Check } from 'lucide-react';
+import { X, Calendar, Clock, User, Check } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 import { useUser, useAuth } from '@clerk/clerk-react';
 import { getAssignedSlots, getServices } from '../services/api';
@@ -292,7 +292,7 @@ export default function BookAppointmentModal({ isOpen, onClose }) {
                             {service.duration} min
                           </span>
                           <span className="flex items-center gap-1">
-                            <DollarSign className="w-4 h-4" />
+                           
                             Rs. {service.price}
                           </span>
                         </div>

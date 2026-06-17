@@ -316,7 +316,7 @@ export default function HomePage() {
                   {service.description}
                 </p>
                 <p className={`text-3xl text-${service.color}-600 mb-2`}>Rs.{service.price}</p>
-                <p className="text-sm text-gray-600">Duration: {service.duration}</p>
+                <p className="text-sm text-gray-600">Duration (Hours): {service.duration}</p>
               </div>
             ))}
           </div>

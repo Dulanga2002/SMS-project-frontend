@@ -1,4 +1,4 @@
-import { Calendar, Clock, DollarSign, CheckCircle, XCircle, AlertCircle, Trash2 } from 'lucide-react';
+import { Calendar, Clock, CheckCircle, XCircle, AlertCircle, Trash2 } from 'lucide-react';
 
 export default function AppointmentList({ appointments = [], userRole, onDelete }) {
   const formatDate = (value) => {
@@ -128,10 +128,10 @@ export default function AppointmentList({ appointments = [], userRole, onDelete 
                 </div>
 
                 <div className="flex items-center gap-2 text-gray-700">
-                  <DollarSign className="w-5 h-5 text-purple-600" />
+                 
                   <div>
                     <p className="text-xs text-gray-500">Total Cost</p>
-                    <p className="text-sm font-medium">LKR {totalCost}</p>
+                    <p className="text-sm font-medium">Rs. {totalCost}</p>
                   </div>
                 </div>
               </div>

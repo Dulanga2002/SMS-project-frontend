@@ -344,7 +344,7 @@ export const deleteService = async (token, id) => {
   }
 };
 
-export const getReviews = async (serviceId, staffId, page, limit) => {
+export const getReviews = async (token, serviceId, staffId, page, limit) => {
   try {
     const params = new URLSearchParams();
     if (serviceId) params.append('serviceId', serviceId);
@@ -352,7 +352,13 @@ export const getReviews = async (serviceId, staffId, page, limit) => {
     if (page) params.append('page', page);
     if (limit) params.append('limit', limit);
     const url = `${API_URL}/reviews${params.toString() ? '?' + params.toString() : ''}`;
-    const response = await fetch(url);
+    const response = await fetch(url, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`,
+      }
+    });
     if (!response.ok) throw new Error('Failed to fetch reviews');
     return await response.json();
   } catch (e) {

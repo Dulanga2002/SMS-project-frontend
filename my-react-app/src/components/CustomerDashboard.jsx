@@ -6,6 +6,7 @@ import { useUser, UserButton, useAuth } from '@clerk/clerk-react';
 import BookAppointmentModal from './BookAppointmentModal';
 import AppointmentList from './AppointmentList';
 import { getMyAppointments, createReview, getReviews, deleteAppointment } from '../services/api';
+import { getAllUsers } from '../services/userService';
 
 export default function CustomerDashboard() {
   const { currentUser, loading, services, staff } = useApp();
@@ -21,12 +22,16 @@ export default function CustomerDashboard() {
   // Review states
   const [reviewServiceId, setReviewServiceId] = useState('');
   const [reviewStaffId, setReviewStaffId] = useState('');
+  const [reviewStaffName, setReviewStaffName] = useState('');
   const [reviewRating, setReviewRating] = useState(5);
   const [reviewComment, setReviewComment] = useState('');
   const [submittingReview, setSubmittingReview] = useState(false);
   const [reviewsList, setReviewsList] = useState([]);
   const [reviewsStats, setReviewsStats] = useState({ averageRating: 0, totalReviews: 0 });
   const [loadingReviews, setLoadingReviews] = useState(false);
+
+  const [staffMembers, setStaffMembers] = useState([]);
+  const [customerName, setCustomerName] = useState('');
 
   const handleProfileClick = () => navigate('/profile');
 
@@ -52,14 +57,29 @@ export default function CustomerDashboard() {
         console.error('Error fetching appointments:', error);
       } 
     }
+    const fetchStaffMembers = async () => {
+      try {
+        const usersData = await getAllUsers();
+        const staff = usersData.data.filter(
+          user => user.publicMetadata?.role === "staff"
+        );
+        console.log('Fetched staff members:', staff);
+        setStaffMembers(staff);
+      } catch (error) {
+        console.error('Error fetching staff members:', error);
+      }
+    };
     fetchAppointments();
+    fetchStaffMembers();
   }, []);
 
   // Fetch public reviews
   const fetchReviews = async () => {
     setLoadingReviews(true);
     try {
-      const data = await getReviews();
+      const token = await getToken();
+      const data = await getReviews(token);
+      console.log('Fetched reviews data:', data.reviews);
       setReviewsList(data.reviews || []);
       setReviewsStats(data.stats || { averageRating: 0, totalReviews: 0 });
     } catch (error) {
@@ -89,6 +109,7 @@ export default function CustomerDashboard() {
       await createReview(freshToken, {
         serviceId: reviewServiceId,
         staffId: reviewStaffId || undefined,
+        staffName: reviewStaffName || undefined,
         rating: reviewRating,
         comment: reviewComment,
       });
@@ -312,17 +333,30 @@ export default function CustomerDashboard() {
                   </select>
                 </div>
 
-                {/* Select Staff (Optional) */}
+                {/* Select Staff */}
                 <div>
-                  <label className="block mb-2 text-sm font-semibold text-gray-700">Select Stylist (Optional)</label>
+                  <label className="block mb-2 text-sm font-semibold text-gray-700">Select Stylist</label>
                   <select
                     value={reviewStaffId}
-                    onChange={(e) => setReviewStaffId(e.target.value)}
+                    onChange={(e) => {
+                      const selectedId = e.target.value;
+
+                      const selectedStaff = staffMembers.find(
+                        (st) => st.id === selectedId
+                      );
+
+                      setReviewStaffId(selectedId);
+                      setReviewStaffName(
+                        selectedStaff ? `${selectedStaff.firstName} ${selectedStaff.lastName}` : ""
+                      );
+                    }}
                     className="w-full border border-gray-200 rounded-xl p-3 bg-gray-50 focus:bg-white focus:ring-2 focus:ring-purple-500 focus:border-transparent outline-none transition-all text-sm"
                   >
                     <option value="">-- Choose a Stylist --</option>
-                    {staff.map((st) => (
-                      <option key={st.id} value={st.id}>{st.name}</option>
+                    {staffMembers.map((st) => (
+                      <option key={st.id} value={st.id}>
+                        {st.firstName} {st.lastName}
+                      </option>
                     ))}
                   </select>
                 </div>
@@ -418,15 +452,15 @@ export default function CustomerDashboard() {
                       <div className="flex justify-between items-start mb-3 gap-2">
                         <div>
                           <p className="font-semibold text-gray-800 text-sm sm:text-base">
-                            {rev.customer?.name || 'Anonymous Client'}
+                            {rev.customerName || 'Anonymous Client'}
                           </p>
                           <div className="flex flex-wrap items-center gap-2 mt-1.5">
                             <span className="text-[11px] font-semibold px-2 py-0.5 bg-purple-50 text-purple-700 border border-purple-100 rounded-full">
                               {rev.service?.name || 'Service'}
                             </span>
-                            {rev.staff?.name && (
+                            {rev.staffName && (
                               <span className="text-[11px] font-semibold px-2 py-0.5 bg-pink-50 text-pink-700 border border-pink-100 rounded-full">
-                                Stylist: {rev.staff.name}
+                                Stylist: {rev.staffName}
                               </span>
                             )}
                           </div>
